@@ -18,7 +18,7 @@ import { useStore } from "@/lib/store";
 import { formatRupiah, todayISO } from "@/lib/format";
 
 export const Route = createFileRoute("/owner/")({
-  component: OwnerDashboard;
+  component: OwnerDashboard,
 });
 
 const COLORS = ["#0D9488", "#10B981", "#0EA5E9", "#F59E0B", "#8B5CF6", "#EF4444", "#14B8A6", "#6366F1"];
