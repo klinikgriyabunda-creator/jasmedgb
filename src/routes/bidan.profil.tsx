@@ -3,7 +3,6 @@ import { LogOut, Stethoscope, BadgeCheck } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
-import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/bidan/profil")({
   component: ProfilPage,
@@ -16,10 +15,10 @@ function ProfilPage() {
   const navigate = useNavigate();
 
   const summary = useMemo(() => {
-    const mine = transaksi.filter((t) => t.bidanId === user?.id);
+    const mine = transaksi.filter((t) => user && t.bidanIds.includes(user.id));
     return {
       count: mine.length,
-      total: mine.reduce((s, t) => s + t.subtotal, 0),
+      tindakan: mine.reduce((s, t) => s + t.jumlah, 0),
     };
   }, [transaksi, user]);
 
@@ -37,12 +36,12 @@ function ProfilPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Total Tindakan</p>
+          <p className="text-xs text-muted-foreground">Jumlah Catatan</p>
           <p className="mt-1 text-xl font-bold">{summary.count}</p>
         </div>
         <div className="rounded-2xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Total Jasmed</p>
-          <p className="mt-1 text-xl font-bold text-primary">{formatRupiah(summary.total)}</p>
+          <p className="text-xs text-muted-foreground">Total Tindakan</p>
+          <p className="mt-1 text-xl font-bold text-primary">{summary.tindakan}</p>
         </div>
       </div>
 

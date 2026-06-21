@@ -11,6 +11,7 @@ import {
   Receipt,
   ListChecks,
   Users as UsersIcon,
+  UserCog,
   LogOut,
   Activity,
   Menu,
@@ -28,6 +29,7 @@ const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: bo
   { to: "/owner", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/owner/transaksi", label: "Transaksi", icon: Receipt },
   { to: "/owner/tarif", label: "Master Tarif", icon: ListChecks },
+  { to: "/owner/bidan", label: "Daftar Bidan", icon: UserCog },
   { to: "/owner/rekap", label: "Rekap Bidan", icon: UsersIcon },
 ];
 

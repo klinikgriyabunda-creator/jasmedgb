@@ -1,24 +1,31 @@
 import type { Tarif, User } from "./types";
 
-export const BIDAN_NAMES = [
-  "Bidan Fika",
-  "Bidan Wafa",
-  "Bidan Neti",
-  "Bidan Ayu",
-  "Bidan Cici",
-  "Bidan Anita",
-  "Bidan Mutiara",
-  "Bidan Wulan",
-  "Bidan Yessi",
-  "Bidan Muti",
+const BIDAN_NAMES = [
+  "Fika",
+  "Anita",
+  "Mutiara",
+  "Cici",
+  "Yessi",
+  "Wulan",
+  "Wafa",
+  "Neti",
+  "Ayu",
 ];
 
 export const SEED_USERS: User[] = [
-  { id: "owner", name: "Owner", role: "owner" },
+  {
+    id: "owner",
+    name: "Owner",
+    role: "owner",
+    username: "owner",
+    password: "admin123",
+  },
   ...BIDAN_NAMES.map((n) => ({
-    id: n.toLowerCase().replace(/\s+/g, "-"),
-    name: n,
+    id: n.toLowerCase(),
+    name: `Bidan ${n}`,
     role: "bidan" as const,
+    username: n.toLowerCase(),
+    password: "bidan123",
   })),
 ];
 

@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Activity, TrendingUp, CalendarDays, PlusCircle, ArrowRight } from "lucide-react";
+import { Activity, CalendarDays, PlusCircle, ArrowRight, ListChecks } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { formatRupiah, greeting, todayISO } from "@/lib/format";
+import { greeting, todayISO, formatTanggal } from "@/lib/format";
 
 export const Route = createFileRoute("/bidan/")({
   component: BidanHome,
@@ -13,16 +13,18 @@ function BidanHome() {
   const transaksi = useStore((s) => s.transaksi);
 
   const stats = useMemo(() => {
-    if (!user) return { tindakanHariIni: 0, jasmedHariIni: 0, jasmedBulanIni: 0 };
+    if (!user) return { tindakanHariIni: 0, tindakanBulanIni: 0, totalTransaksi: 0 };
     const today = todayISO();
     const month = today.slice(0, 7);
-    const mine = transaksi.filter((t) => t.bidanId === user.id);
-    const hariIni = mine.filter((t) => t.tanggal === today);
-    const bulanIni = mine.filter((t) => t.tanggal.startsWith(month));
+    const mine = transaksi.filter((t) => t.bidanIds.includes(user.id));
     return {
-      tindakanHariIni: hariIni.reduce((s, t) => s + t.jumlah, 0),
-      jasmedHariIni: hariIni.reduce((s, t) => s + t.subtotal, 0),
-      jasmedBulanIni: bulanIni.reduce((s, t) => s + t.subtotal, 0),
+      tindakanHariIni: mine
+        .filter((t) => t.tanggal === today)
+        .reduce((s, t) => s + t.jumlah, 0),
+      tindakanBulanIni: mine
+        .filter((t) => t.tanggal.startsWith(month))
+        .reduce((s, t) => s + t.jumlah, 0),
+      totalTransaksi: mine.length,
     };
   }, [transaksi, user]);
 
@@ -43,15 +45,15 @@ function BidanHome() {
           accent="bg-primary/10 text-primary"
         />
         <StatCard
-          icon={<TrendingUp className="h-4 w-4" />}
-          label="Jasmed Hari Ini"
-          value={formatRupiah(stats.jasmedHariIni)}
+          icon={<CalendarDays className="h-4 w-4" />}
+          label="Tindakan Bulan Ini"
+          value={String(stats.tindakanBulanIni)}
           accent="bg-secondary/15 text-secondary"
         />
         <StatCard
-          icon={<CalendarDays className="h-4 w-4" />}
-          label="Bulan Ini"
-          value={formatRupiah(stats.jasmedBulanIni)}
+          icon={<ListChecks className="h-4 w-4" />}
+          label="Total Catatan"
+          value={String(stats.totalTransaksi)}
           accent="bg-accent text-accent-foreground"
         />
       </section>
@@ -97,7 +99,8 @@ function RecentList() {
   const user = useStore((s) => s.currentUser);
   const transaksi = useStore((s) => s.transaksi);
   const mine = useMemo(
-    () => transaksi.filter((t) => t.bidanId === user?.id).slice(0, 5),
+    () =>
+      transaksi.filter((t) => user && t.bidanIds.includes(user.id)).slice(0, 5),
     [transaksi, user],
   );
 
@@ -120,12 +123,14 @@ function RecentList() {
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{t.tarifNama}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {t.pasien} · {t.jumlah}x
+                  {t.pasien} · {t.jumlah}x · {formatTanggal(t.tanggal)}
                 </p>
               </div>
-              <p className="shrink-0 text-sm font-semibold text-primary">
-                {formatRupiah(t.subtotal)}
-              </p>
+              {t.bidanNamas.length > 1 && (
+                <span className="shrink-0 rounded-md bg-secondary/15 px-2 py-0.5 text-[10px] font-semibold text-secondary">
+                  Tim
+                </span>
+              )}
             </li>
           ))}
         </ul>

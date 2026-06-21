@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/login")({
@@ -31,28 +24,21 @@ function LoginPage() {
   const login = useStore((s) => s.login);
   const navigate = useNavigate();
 
-  const bidans = users.filter((u) => u.role === "bidan");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [bidanId, setBidanId] = useState("");
 
-  const handleOwner = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, asRole: "owner" | "bidan") => {
     e.preventDefault();
-    if (username === "owner" && password === "admin123") {
-      login({ id: "owner", name: "Owner", role: "owner" });
-      toast.success("Selamat datang, Owner");
-      navigate({ to: "/owner" });
-    } else toast.error("Username atau password salah");
-  };
-
-  const handleBidan = (e: React.FormEvent) => {
-    e.preventDefault();
-    const bidan = bidans.find((b) => b.id === bidanId);
-    if (!bidan) return toast.error("Pilih nama bidan");
-    if (password !== "bidan123") return toast.error("Password salah");
-    login(bidan);
-    toast.success(`Selamat datang, ${bidan.name}`);
-    navigate({ to: "/bidan" });
+    const found = users.find(
+      (u) =>
+        u.role === asRole &&
+        u.username.toLowerCase() === username.trim().toLowerCase() &&
+        u.password === password,
+    );
+    if (!found) return toast.error("Username atau password salah");
+    login(found);
+    toast.success(`Selamat datang, ${found.name}`);
+    navigate({ to: asRole === "owner" ? "/owner" : "/bidan" });
   };
 
   return (
@@ -73,7 +59,7 @@ function LoginPage() {
         {!role && (
           <div className="grid gap-5 sm:grid-cols-2">
             <button
-              onClick={() => setRole("owner")}
+              onClick={() => { setRole("owner"); setUsername(""); setPassword(""); }}
               className="group rounded-2xl border bg-card p-7 text-left shadow-card transition-all hover:-translate-y-1 hover:border-primary hover:shadow-soft"
             >
               <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -85,7 +71,7 @@ function LoginPage() {
               </p>
             </button>
             <button
-              onClick={() => setRole("bidan")}
+              onClick={() => { setRole("bidan"); setUsername(""); setPassword(""); }}
               className="group rounded-2xl border bg-card p-7 text-left shadow-card transition-all hover:-translate-y-1 hover:border-secondary hover:shadow-soft"
             >
               <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-secondary/15 text-secondary">
@@ -93,25 +79,27 @@ function LoginPage() {
               </div>
               <h2 className="text-lg font-semibold text-foreground">Bidan</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Input tindakan harian dan lihat riwayat jasmed Anda.
+                Input tindakan harian dan lihat riwayat tindakan Anda.
               </p>
             </button>
           </div>
         )}
 
-        {role === "owner" && (
+        {role && (
           <Card className="mx-auto max-w-md p-6">
-            <form onSubmit={handleOwner} className="space-y-4">
-              <h3 className="text-lg font-semibold">Masuk sebagai Owner</h3>
+            <form onSubmit={(e) => handleSubmit(e, role)} className="space-y-4">
+              <h3 className="text-lg font-semibold">
+                Masuk sebagai {role === "owner" ? "Owner" : "Bidan"}
+              </h3>
               <div className="space-y-2">
                 <Label>Username</Label>
                 <div className="relative">
                   <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    className="pl-9"
+                    className="h-11 pl-9"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="owner"
+                    placeholder={role === "owner" ? "owner" : "mis. fika"}
                     autoFocus
                   />
                 </div>
@@ -122,52 +110,10 @@ function LoginPage() {
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="password"
-                    className="pl-9"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="admin123"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setRole(null)}>
-                  Kembali
-                </Button>
-                <Button type="submit" className="flex-1">Masuk</Button>
-              </div>
-            </form>
-          </Card>
-        )}
-
-        {role === "bidan" && (
-          <Card className="mx-auto max-w-md p-6">
-            <form onSubmit={handleBidan} className="space-y-4">
-              <h3 className="text-lg font-semibold">Masuk sebagai Bidan</h3>
-              <div className="space-y-2">
-                <Label>Nama Bidan</Label>
-                <Select value={bidanId} onValueChange={setBidanId}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Pilih nama Anda" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bidans.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    type="password"
                     className="h-11 pl-9"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="bidan123"
+                    placeholder="••••••••"
                   />
                 </div>
               </div>
@@ -183,7 +129,7 @@ function LoginPage() {
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Demo: <span className="font-medium">owner / admin123</span> ·{" "}
-          <span className="font-medium">bidan / bidan123</span>
+          <span className="font-medium">fika / bidan123</span>
         </p>
       </div>
     </div>
