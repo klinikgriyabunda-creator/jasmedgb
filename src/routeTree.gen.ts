@@ -15,6 +15,9 @@ import { Route as BidanRouteImport } from './routes/bidan'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OwnerIndexRouteImport } from './routes/owner.index'
 import { Route as BidanIndexRouteImport } from './routes/bidan.index'
+import { Route as OwnerTransaksiRouteImport } from './routes/owner.transaksi'
+import { Route as OwnerTarifRouteImport } from './routes/owner.tarif'
+import { Route as OwnerRekapRouteImport } from './routes/owner.rekap'
 import { Route as BidanRiwayatRouteImport } from './routes/bidan.riwayat'
 import { Route as BidanProfilRouteImport } from './routes/bidan.profil'
 import { Route as BidanInputRouteImport } from './routes/bidan.input'
@@ -49,6 +52,21 @@ const BidanIndexRoute = BidanIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BidanRoute,
 } as any)
+const OwnerTransaksiRoute = OwnerTransaksiRouteImport.update({
+  id: '/transaksi',
+  path: '/transaksi',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerTarifRoute = OwnerTarifRouteImport.update({
+  id: '/tarif',
+  path: '/tarif',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerRekapRoute = OwnerRekapRouteImport.update({
+  id: '/rekap',
+  path: '/rekap',
+  getParentRoute: () => OwnerRoute,
+} as any)
 const BidanRiwayatRoute = BidanRiwayatRouteImport.update({
   id: '/riwayat',
   path: '/riwayat',
@@ -73,6 +91,9 @@ export interface FileRoutesByFullPath {
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
   '/bidan/': typeof BidanIndexRoute
   '/owner/': typeof OwnerIndexRoute
 }
@@ -82,6 +103,9 @@ export interface FileRoutesByTo {
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
   '/bidan': typeof BidanIndexRoute
   '/owner': typeof OwnerIndexRoute
 }
@@ -94,6 +118,9 @@ export interface FileRoutesById {
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
   '/bidan/': typeof BidanIndexRoute
   '/owner/': typeof OwnerIndexRoute
 }
@@ -107,6 +134,9 @@ export interface FileRouteTypes {
     | '/bidan/input'
     | '/bidan/profil'
     | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
     | '/bidan/'
     | '/owner/'
   fileRoutesByTo: FileRoutesByTo
@@ -116,6 +146,9 @@ export interface FileRouteTypes {
     | '/bidan/input'
     | '/bidan/profil'
     | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
     | '/bidan'
     | '/owner'
   id:
@@ -127,6 +160,9 @@ export interface FileRouteTypes {
     | '/bidan/input'
     | '/bidan/profil'
     | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
     | '/bidan/'
     | '/owner/'
   fileRoutesById: FileRoutesById
@@ -182,6 +218,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BidanIndexRouteImport
       parentRoute: typeof BidanRoute
     }
+    '/owner/transaksi': {
+      id: '/owner/transaksi'
+      path: '/transaksi'
+      fullPath: '/owner/transaksi'
+      preLoaderRoute: typeof OwnerTransaksiRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/tarif': {
+      id: '/owner/tarif'
+      path: '/tarif'
+      fullPath: '/owner/tarif'
+      preLoaderRoute: typeof OwnerTarifRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/rekap': {
+      id: '/owner/rekap'
+      path: '/rekap'
+      fullPath: '/owner/rekap'
+      preLoaderRoute: typeof OwnerRekapRouteImport
+      parentRoute: typeof OwnerRoute
+    }
     '/bidan/riwayat': {
       id: '/bidan/riwayat'
       path: '/riwayat'
@@ -223,10 +280,16 @@ const BidanRouteChildren: BidanRouteChildren = {
 const BidanRouteWithChildren = BidanRoute._addFileChildren(BidanRouteChildren)
 
 interface OwnerRouteChildren {
+  OwnerRekapRoute: typeof OwnerRekapRoute
+  OwnerTarifRoute: typeof OwnerTarifRoute
+  OwnerTransaksiRoute: typeof OwnerTransaksiRoute
   OwnerIndexRoute: typeof OwnerIndexRoute
 }
 
 const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerRekapRoute: OwnerRekapRoute,
+  OwnerTarifRoute: OwnerTarifRoute,
+  OwnerTransaksiRoute: OwnerTransaksiRoute,
   OwnerIndexRoute: OwnerIndexRoute,
 }
 
