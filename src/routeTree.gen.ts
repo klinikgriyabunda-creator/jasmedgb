@@ -9,38 +9,194 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OwnerRouteImport } from './routes/owner'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as BidanRouteImport } from './routes/bidan'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OwnerIndexRouteImport } from './routes/owner.index'
+import { Route as BidanIndexRouteImport } from './routes/bidan.index'
+import { Route as OwnerTransaksiRouteImport } from './routes/owner.transaksi'
+import { Route as OwnerTarifRouteImport } from './routes/owner.tarif'
+import { Route as OwnerRekapRouteImport } from './routes/owner.rekap'
+import { Route as BidanRiwayatRouteImport } from './routes/bidan.riwayat'
+import { Route as BidanProfilRouteImport } from './routes/bidan.profil'
+import { Route as BidanInputRouteImport } from './routes/bidan.input'
 
+const OwnerRoute = OwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BidanRoute = BidanRouteImport.update({
+  id: '/bidan',
+  path: '/bidan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OwnerIndexRoute = OwnerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const BidanIndexRoute = BidanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BidanRoute,
+} as any)
+const OwnerTransaksiRoute = OwnerTransaksiRouteImport.update({
+  id: '/transaksi',
+  path: '/transaksi',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerTarifRoute = OwnerTarifRouteImport.update({
+  id: '/tarif',
+  path: '/tarif',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const OwnerRekapRoute = OwnerRekapRouteImport.update({
+  id: '/rekap',
+  path: '/rekap',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const BidanRiwayatRoute = BidanRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
+  getParentRoute: () => BidanRoute,
+} as any)
+const BidanProfilRoute = BidanProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => BidanRoute,
+} as any)
+const BidanInputRoute = BidanInputRouteImport.update({
+  id: '/input',
+  path: '/input',
+  getParentRoute: () => BidanRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bidan': typeof BidanRouteWithChildren
+  '/login': typeof LoginRoute
+  '/owner': typeof OwnerRouteWithChildren
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
+  '/bidan/': typeof BidanIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
+  '/bidan': typeof BidanIndexRoute
+  '/owner': typeof OwnerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bidan': typeof BidanRouteWithChildren
+  '/login': typeof LoginRoute
+  '/owner': typeof OwnerRouteWithChildren
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/owner/rekap': typeof OwnerRekapRoute
+  '/owner/tarif': typeof OwnerTarifRoute
+  '/owner/transaksi': typeof OwnerTransaksiRoute
+  '/bidan/': typeof BidanIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/bidan'
+    | '/login'
+    | '/owner'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
+    | '/bidan/'
+    | '/owner/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
+    | '/bidan'
+    | '/owner'
+  id:
+    | '__root__'
+    | '/'
+    | '/bidan'
+    | '/login'
+    | '/owner'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/owner/rekap'
+    | '/owner/tarif'
+    | '/owner/transaksi'
+    | '/bidan/'
+    | '/owner/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BidanRoute: typeof BidanRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  OwnerRoute: typeof OwnerRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/owner': {
+      id: '/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof OwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bidan': {
+      id: '/bidan'
+      path: '/bidan'
+      fullPath: '/bidan'
+      preLoaderRoute: typeof BidanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +204,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/owner/': {
+      id: '/owner/'
+      path: '/'
+      fullPath: '/owner/'
+      preLoaderRoute: typeof OwnerIndexRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/bidan/': {
+      id: '/bidan/'
+      path: '/'
+      fullPath: '/bidan/'
+      preLoaderRoute: typeof BidanIndexRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/owner/transaksi': {
+      id: '/owner/transaksi'
+      path: '/transaksi'
+      fullPath: '/owner/transaksi'
+      preLoaderRoute: typeof OwnerTransaksiRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/tarif': {
+      id: '/owner/tarif'
+      path: '/tarif'
+      fullPath: '/owner/tarif'
+      preLoaderRoute: typeof OwnerTarifRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/owner/rekap': {
+      id: '/owner/rekap'
+      path: '/rekap'
+      fullPath: '/owner/rekap'
+      preLoaderRoute: typeof OwnerRekapRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/bidan/riwayat': {
+      id: '/bidan/riwayat'
+      path: '/riwayat'
+      fullPath: '/bidan/riwayat'
+      preLoaderRoute: typeof BidanRiwayatRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/bidan/profil': {
+      id: '/bidan/profil'
+      path: '/profil'
+      fullPath: '/bidan/profil'
+      preLoaderRoute: typeof BidanProfilRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/bidan/input': {
+      id: '/bidan/input'
+      path: '/input'
+      fullPath: '/bidan/input'
+      preLoaderRoute: typeof BidanInputRouteImport
+      parentRoute: typeof BidanRoute
+    }
   }
 }
 
+interface BidanRouteChildren {
+  BidanInputRoute: typeof BidanInputRoute
+  BidanProfilRoute: typeof BidanProfilRoute
+  BidanRiwayatRoute: typeof BidanRiwayatRoute
+  BidanIndexRoute: typeof BidanIndexRoute
+}
+
+const BidanRouteChildren: BidanRouteChildren = {
+  BidanInputRoute: BidanInputRoute,
+  BidanProfilRoute: BidanProfilRoute,
+  BidanRiwayatRoute: BidanRiwayatRoute,
+  BidanIndexRoute: BidanIndexRoute,
+}
+
+const BidanRouteWithChildren = BidanRoute._addFileChildren(BidanRouteChildren)
+
+interface OwnerRouteChildren {
+  OwnerRekapRoute: typeof OwnerRekapRoute
+  OwnerTarifRoute: typeof OwnerTarifRoute
+  OwnerTransaksiRoute: typeof OwnerTransaksiRoute
+  OwnerIndexRoute: typeof OwnerIndexRoute
+}
+
+const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerRekapRoute: OwnerRekapRoute,
+  OwnerTarifRoute: OwnerTarifRoute,
+  OwnerTransaksiRoute: OwnerTransaksiRoute,
+  OwnerIndexRoute: OwnerIndexRoute,
+}
+
+const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BidanRoute: BidanRouteWithChildren,
+  LoginRoute: LoginRoute,
+  OwnerRoute: OwnerRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
