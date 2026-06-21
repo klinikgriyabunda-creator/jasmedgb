@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Search } from "lucide-react";
+import { ArrowLeft, Check, Search, X, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useStore } from "@/lib/store";
-import { formatRupiah, todayISO } from "@/lib/format";
+import { todayISO } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/bidan/input")({
@@ -25,25 +28,34 @@ export const Route = createFileRoute("/bidan/input")({
 function InputPage() {
   const navigate = useNavigate();
   const user = useStore((s) => s.currentUser);
+  const users = useStore((s) => s.users);
   const tarifList = useStore((s) => s.tarif);
   const addTransaksi = useStore((s) => s.addTransaksi);
+
+  const otherBidans = useMemo(
+    () => users.filter((u) => u.role === "bidan" && u.id !== user?.id),
+    [users, user],
+  );
 
   const [tanggal, setTanggal] = useState(todayISO());
   const [pasien, setPasien] = useState("");
   const [tarifId, setTarifId] = useState("");
   const [jumlah, setJumlah] = useState(1);
   const [open, setOpen] = useState(false);
+  const [partnerOn, setPartnerOn] = useState(false);
+  const [partnerId, setPartnerId] = useState("");
 
   const tarif = useMemo(
     () => tarifList.find((t) => t.id === tarifId),
     [tarifList, tarifId],
   );
-  const subtotal = (tarif?.tarif ?? 0) * jumlah;
 
   const reset = () => {
     setPasien("");
     setTarifId("");
     setJumlah(1);
+    setPartnerOn(false);
+    setPartnerId("");
   };
 
   const submit = (e: React.FormEvent, again: boolean) => {
@@ -52,19 +64,32 @@ function InputPage() {
     if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
     if (!tarif) return toast.error("Pilih jasa medis");
     if (jumlah < 1) return toast.error("Jumlah minimal 1");
+    if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
+
+    const bidanIds = [user.id];
+    const bidanNamas = [user.name];
+    if (partnerOn && partnerId) {
+      const partner = otherBidans.find((u) => u.id === partnerId);
+      if (partner) {
+        bidanIds.push(partner.id);
+        bidanNamas.push(partner.name);
+      }
+    }
 
     addTransaksi({
       tanggal,
-      bidanId: user.id,
-      bidanNama: user.name,
+      bidanIds,
+      bidanNamas,
       pasien: pasien.trim(),
       tarifId: tarif.id,
       tarifNama: tarif.nama,
-      tarifNominal: tarif.tarif,
+      tarifNominal: 0, // owner mengisi nominalnya nanti
       jumlah,
-      subtotal,
+      subtotal: 0,
     });
-    toast.success("Tindakan tersimpan", { description: `${tarif.nama} · ${formatRupiah(subtotal)}` });
+    toast.success("Tindakan tersimpan", {
+      description: `${tarif.nama} · ${jumlah}x`,
+    });
     if (again) reset();
     else navigate({ to: "/bidan/riwayat" });
   };
@@ -142,9 +167,6 @@ function InputPage() {
                           <p className="truncate text-sm font-medium">{t.nama}</p>
                           <p className="text-xs text-muted-foreground">{t.kategori}</p>
                         </div>
-                        <span className="shrink-0 text-sm font-semibold text-primary">
-                          {formatRupiah(t.tarif)}
-                        </span>
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -152,11 +174,46 @@ function InputPage() {
               </Command>
             </PopoverContent>
           </Popover>
-          {tarif && (
-            <p className="text-xs text-muted-foreground">
-              Tarif: <span className="font-semibold text-primary">{formatRupiah(tarif.tarif)}</span>
-            </p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">Partner Shift (opsional)</Label>
+            {partnerOn ? (
+              <button
+                type="button"
+                onClick={() => { setPartnerOn(false); setPartnerId(""); }}
+                className="flex items-center gap-1 text-xs text-muted-foreground"
+              >
+                <X className="h-3 w-3" /> Hapus partner
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPartnerOn(true)}
+                className="flex items-center gap-1 text-xs font-medium text-primary"
+              >
+                <UserPlus className="h-3 w-3" /> Tambah bidan kedua
+              </button>
+            )}
+          </div>
+          {partnerOn && (
+            <Select value={partnerId} onValueChange={setPartnerId}>
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Pilih bidan partner shift" />
+              </SelectTrigger>
+              <SelectContent>
+                {otherBidans.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
+          <p className="text-xs text-muted-foreground">
+            Dalam satu shift, jika tindakan dilakukan bersama, tambahkan bidan partner Anda.
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -187,14 +244,16 @@ function InputPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-primary to-secondary p-5 text-primary-foreground shadow-soft">
-          <p className="text-xs uppercase tracking-wide opacity-80">Subtotal</p>
-          <p className="mt-1 text-3xl font-bold">{formatRupiah(subtotal)}</p>
-          {tarif && (
-            <p className="mt-1 text-xs opacity-90">
-              {jumlah} × {formatRupiah(tarif.tarif)}
-            </p>
-          )}
+        <div className="rounded-2xl border border-dashed bg-card/60 p-5 text-center">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Ringkasan
+          </p>
+          <p className="mt-1 text-lg font-bold text-foreground">
+            {tarif ? tarif.nama : "—"}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {jumlah} tindakan · {partnerOn && partnerId ? "Tim 2 Bidan" : "Solo"}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
