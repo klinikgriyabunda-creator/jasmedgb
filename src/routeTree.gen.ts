@@ -9,14 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as BidanRouteImport } from './routes/bidan'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OwnerIndexRouteImport } from './routes/owner.index'
 import { Route as BidanIndexRouteImport } from './routes/bidan.index'
 import { Route as BidanRiwayatRouteImport } from './routes/bidan.riwayat'
 import { Route as BidanProfilRouteImport } from './routes/bidan.profil'
 import { Route as BidanInputRouteImport } from './routes/bidan.input'
 
+const OwnerRoute = OwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -31,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerIndexRoute = OwnerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OwnerRoute,
 } as any)
 const BidanIndexRoute = BidanIndexRouteImport.update({
   id: '/',
@@ -57,10 +69,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bidan': typeof BidanRouteWithChildren
   '/login': typeof LoginRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
   '/bidan/': typeof BidanIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,16 +83,19 @@ export interface FileRoutesByTo {
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
   '/bidan': typeof BidanIndexRoute
+  '/owner': typeof OwnerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bidan': typeof BidanRouteWithChildren
   '/login': typeof LoginRoute
+  '/owner': typeof OwnerRouteWithChildren
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
   '/bidan/riwayat': typeof BidanRiwayatRoute
   '/bidan/': typeof BidanIndexRoute
+  '/owner/': typeof OwnerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,10 +103,12 @@ export interface FileRouteTypes {
     | '/'
     | '/bidan'
     | '/login'
+    | '/owner'
     | '/bidan/input'
     | '/bidan/profil'
     | '/bidan/riwayat'
     | '/bidan/'
+    | '/owner/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,25 +117,36 @@ export interface FileRouteTypes {
     | '/bidan/profil'
     | '/bidan/riwayat'
     | '/bidan'
+    | '/owner'
   id:
     | '__root__'
     | '/'
     | '/bidan'
     | '/login'
+    | '/owner'
     | '/bidan/input'
     | '/bidan/profil'
     | '/bidan/riwayat'
     | '/bidan/'
+    | '/owner/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BidanRoute: typeof BidanRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OwnerRoute: typeof OwnerRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/owner': {
+      id: '/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof OwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -137,6 +167,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/owner/': {
+      id: '/owner/'
+      path: '/'
+      fullPath: '/owner/'
+      preLoaderRoute: typeof OwnerIndexRouteImport
+      parentRoute: typeof OwnerRoute
     }
     '/bidan/': {
       id: '/bidan/'
@@ -185,10 +222,21 @@ const BidanRouteChildren: BidanRouteChildren = {
 
 const BidanRouteWithChildren = BidanRoute._addFileChildren(BidanRouteChildren)
 
+interface OwnerRouteChildren {
+  OwnerIndexRoute: typeof OwnerIndexRoute
+}
+
+const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerIndexRoute: OwnerIndexRoute,
+}
+
+const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BidanRoute: BidanRouteWithChildren,
   LoginRoute: LoginRoute,
+  OwnerRoute: OwnerRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
