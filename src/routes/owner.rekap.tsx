@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Download, Stethoscope } from "lucide-react";
+import { Download, Stethoscope, Users } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,15 @@ function RekapPage() {
     return bidans
       .map((b) => {
         const items = filtered
-          .filter((t) => t.bidanId === b.id)
+          .filter((t) => t.bidanIds.includes(b.id))
           .sort((a, b2) => b2.tanggal.localeCompare(a.tanggal));
+        const share = (t: (typeof items)[number]) =>
+          t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0;
         return {
           bidanId: b.id,
           nama: b.name,
           items,
-          total: items.reduce((s, t) => s + t.subtotal, 0),
+          total: items.reduce((s, t) => s + share(t), 0),
           tindakan: items.reduce((s, t) => s + t.jumlah, 0),
         };
       })
@@ -54,31 +56,36 @@ function RekapPage() {
       Bidan: b.nama,
       "Jumlah Transaksi": b.items.length,
       "Total Tindakan": b.tindakan,
-      "Total Jasmed": b.total,
+      "Total Jasmed (bagian)": Math.round(b.total),
     }));
     summary.push({
       Bidan: "TOTAL KESELURUHAN",
       "Jumlah Transaksi": rekap.reduce((s, b) => s + b.items.length, 0),
       "Total Tindakan": rekap.reduce((s, b) => s + b.tindakan, 0),
-      "Total Jasmed": grandTotal,
+      "Total Jasmed (bagian)": Math.round(grandTotal),
     });
     const wsSummary = XLSX.utils.json_to_sheet(summary);
-    wsSummary["!cols"] = [{ wch: 24 }, { wch: 18 }, { wch: 16 }, { wch: 16 }];
+    wsSummary["!cols"] = [{ wch: 24 }, { wch: 18 }, { wch: 16 }, { wch: 22 }];
     XLSX.utils.book_append_sheet(wb, wsSummary, "Rekap Per Bidan");
 
     const detail = rekap.flatMap((b) =>
       b.items.map((t) => ({
         Tanggal: formatTanggal(t.tanggal),
         Bidan: b.nama,
+        "Tim Bidan": t.bidanNamas.join(" & "),
         Pasien: t.pasien,
         "Jasa Medis": t.tarifNama,
         Tarif: t.tarifNominal,
         Jumlah: t.jumlah,
         Subtotal: t.subtotal,
+        "Bagian Bidan": Math.round(t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0),
       })),
     );
     const wsDetail = XLSX.utils.json_to_sheet(detail);
-    wsDetail["!cols"] = [{ wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 30 }, { wch: 12 }, { wch: 8 }, { wch: 14 }];
+    wsDetail["!cols"] = [
+      { wch: 14 }, { wch: 18 }, { wch: 24 }, { wch: 22 }, { wch: 30 },
+      { wch: 12 }, { wch: 8 }, { wch: 14 }, { wch: 14 },
+    ];
     XLSX.utils.book_append_sheet(wb, wsDetail, "Detail Transaksi");
 
     XLSX.writeFile(wb, `rekap-jasmed-${from}_to_${to}.xlsx`);
@@ -91,7 +98,7 @@ function RekapPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Rekap per Bidan</h1>
           <p className="text-sm text-muted-foreground">
-            Kelompokkan transaksi per bidan dan ekspor laporan
+            Jasmed dari shift tim dibagi rata antar bidan
           </p>
         </div>
         <Button onClick={exportRekap}>
@@ -148,19 +155,38 @@ function RekapPage() {
                 </p>
               ) : (
                 <ul className="divide-y">
-                  {b.items.map((t) => (
-                    <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{t.tarifNama}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {formatTanggal(t.tanggal)} · {t.pasien} · {t.jumlah}x
-                        </p>
-                      </div>
-                      <p className="shrink-0 text-sm font-semibold text-primary">
-                        {formatRupiah(t.subtotal)}
-                      </p>
-                    </li>
-                  ))}
+                  {b.items.map((t) => {
+                    const isTim = t.bidanIds.length > 1;
+                    const share = isTim ? t.subtotal / t.bidanIds.length : t.subtotal;
+                    return (
+                      <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-medium">{t.tarifNama}</p>
+                            {isTim && (
+                              <span className="flex items-center gap-1 rounded-md bg-secondary/15 px-1.5 py-0.5 text-[10px] font-semibold text-secondary">
+                                <Users className="h-3 w-3" /> Tim
+                              </span>
+                            )}
+                          </div>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {formatTanggal(t.tanggal)} · {t.pasien} · {t.jumlah}x
+                            {isTim && ` · dibagi ${t.bidanIds.length}`}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-sm font-semibold text-primary">
+                            {formatRupiah(share)}
+                          </p>
+                          {isTim && (
+                            <p className="text-[10px] text-muted-foreground">
+                              dari {formatRupiah(t.subtotal)}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </AccordionContent>

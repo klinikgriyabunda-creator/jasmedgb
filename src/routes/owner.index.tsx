@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { TrendingUp, Receipt, Crown, Users } from "lucide-react";
+import { TrendingUp, Receipt, Crown, Users, AlertCircle } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { formatRupiah, todayISO } from "@/lib/format";
 
@@ -31,17 +31,22 @@ function OwnerDashboard() {
     const month = todayISO().slice(0, 7);
     const bulanIni = transaksi.filter((t) => t.tanggal.startsWith(month));
     const totalBulan = bulanIni.reduce((s, t) => s + t.subtotal, 0);
+    const belumDiisi = transaksi.filter((t) => t.tarifNominal === 0).length;
 
     const perBidan = new Map<string, { nama: string; total: number; count: number }>();
     users.filter((u) => u.role === "bidan").forEach((u) =>
       perBidan.set(u.id, { nama: u.name.replace("Bidan ", ""), total: 0, count: 0 }),
     );
     bulanIni.forEach((t) => {
-      const e = perBidan.get(t.bidanId);
-      if (e) {
-        e.total += t.subtotal;
-        e.count += t.jumlah;
-      }
+      const share = t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0;
+      const shareCount = t.bidanIds.length ? t.jumlah / t.bidanIds.length : 0;
+      t.bidanIds.forEach((bid) => {
+        const e = perBidan.get(bid);
+        if (e) {
+          e.total += share;
+          e.count += shareCount;
+        }
+      });
     });
     const bidanArr = Array.from(perBidan.values()).sort((a, b) => b.total - a.total);
     const top = bidanArr[0];
@@ -60,6 +65,7 @@ function OwnerDashboard() {
       topBidan: top,
       bidanArr,
       tindakanArr,
+      belumDiisi,
     };
   }, [transaksi, users]);
 
@@ -72,6 +78,20 @@ function OwnerDashboard() {
           {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
         </p>
       </header>
+
+      {data.belumDiisi > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div className="text-sm">
+            <p className="font-semibold">
+              {data.belumDiisi} transaksi belum diisi tarifnya
+            </p>
+            <p className="opacity-90">
+              Buka menu Transaksi untuk mengisi nominal tarif tindakan.
+            </p>
+          </div>
+        </div>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
