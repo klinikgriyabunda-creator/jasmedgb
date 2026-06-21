@@ -55,15 +55,17 @@ export const useStore = create<JasmedState>()(
     }),
     {
       name: "jasmed-store",
-      storage: createJSONStorage(() =>
-        typeof window !== "undefined"
-          ? window.localStorage
-          : ({
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {},
-            } as Storage),
-      ),
+      storage: createJSONStorage(() => {
+        if (typeof window !== "undefined") return window.localStorage;
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+          clear: () => {},
+          key: () => null,
+          length: 0,
+        } as Storage;
+      }),
     },
   ),
 );
