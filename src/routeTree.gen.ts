@@ -10,11 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as BidanRouteImport } from './routes/bidan'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BidanIndexRouteImport } from './routes/bidan.index'
+import { Route as BidanRiwayatRouteImport } from './routes/bidan.riwayat'
+import { Route as BidanProfilRouteImport } from './routes/bidan.profil'
+import { Route as BidanInputRouteImport } from './routes/bidan.input'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BidanRoute = BidanRouteImport.update({
+  id: '/bidan',
+  path: '/bidan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +32,86 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BidanIndexRoute = BidanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BidanRoute,
+} as any)
+const BidanRiwayatRoute = BidanRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
+  getParentRoute: () => BidanRoute,
+} as any)
+const BidanProfilRoute = BidanProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => BidanRoute,
+} as any)
+const BidanInputRoute = BidanInputRouteImport.update({
+  id: '/input',
+  path: '/input',
+  getParentRoute: () => BidanRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bidan': typeof BidanRouteWithChildren
   '/login': typeof LoginRoute
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/bidan/': typeof BidanIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/bidan': typeof BidanIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bidan': typeof BidanRouteWithChildren
   '/login': typeof LoginRoute
+  '/bidan/input': typeof BidanInputRoute
+  '/bidan/profil': typeof BidanProfilRoute
+  '/bidan/riwayat': typeof BidanRiwayatRoute
+  '/bidan/': typeof BidanIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login'
+  fullPaths:
+    | '/'
+    | '/bidan'
+    | '/login'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/bidan/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login'
-  id: '__root__' | '/' | '/login'
+  to:
+    | '/'
+    | '/login'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/bidan'
+  id:
+    | '__root__'
+    | '/'
+    | '/bidan'
+    | '/login'
+    | '/bidan/input'
+    | '/bidan/profil'
+    | '/bidan/riwayat'
+    | '/bidan/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BidanRoute: typeof BidanRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -58,6 +124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bidan': {
+      id: '/bidan'
+      path: '/bidan'
+      fullPath: '/bidan'
+      preLoaderRoute: typeof BidanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,11 +138,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bidan/': {
+      id: '/bidan/'
+      path: '/'
+      fullPath: '/bidan/'
+      preLoaderRoute: typeof BidanIndexRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/bidan/riwayat': {
+      id: '/bidan/riwayat'
+      path: '/riwayat'
+      fullPath: '/bidan/riwayat'
+      preLoaderRoute: typeof BidanRiwayatRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/bidan/profil': {
+      id: '/bidan/profil'
+      path: '/profil'
+      fullPath: '/bidan/profil'
+      preLoaderRoute: typeof BidanProfilRouteImport
+      parentRoute: typeof BidanRoute
+    }
+    '/bidan/input': {
+      id: '/bidan/input'
+      path: '/input'
+      fullPath: '/bidan/input'
+      preLoaderRoute: typeof BidanInputRouteImport
+      parentRoute: typeof BidanRoute
+    }
   }
 }
 
+interface BidanRouteChildren {
+  BidanInputRoute: typeof BidanInputRoute
+  BidanProfilRoute: typeof BidanProfilRoute
+  BidanRiwayatRoute: typeof BidanRiwayatRoute
+  BidanIndexRoute: typeof BidanIndexRoute
+}
+
+const BidanRouteChildren: BidanRouteChildren = {
+  BidanInputRoute: BidanInputRoute,
+  BidanProfilRoute: BidanProfilRoute,
+  BidanRiwayatRoute: BidanRiwayatRoute,
+  BidanIndexRoute: BidanIndexRoute,
+}
+
+const BidanRouteWithChildren = BidanRoute._addFileChildren(BidanRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BidanRoute: BidanRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

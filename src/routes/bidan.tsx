@@ -14,12 +14,12 @@ export const Route = createFileRoute("/bidan")({
   component: BidanLayout,
 });
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/bidan", label: "Beranda", icon: Home, exact: true },
   { to: "/bidan/input", label: "Input", icon: PlusCircle },
   { to: "/bidan/riwayat", label: "Riwayat", icon: History },
   { to: "/bidan/profil", label: "Profil", icon: User },
-] as const;
+];
 
 function BidanLayout() {
   const user = useStore((s) => s.currentUser);
