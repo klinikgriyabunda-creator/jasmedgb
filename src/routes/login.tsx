@@ -123,13 +123,14 @@ function LoginPage() {
                 </Button>
                 <Button type="submit" className="h-11 flex-1">Masuk</Button>
               </div>
+              {role === "owner" && <ForgotPassword users={users} />}
             </form>
           </Card>
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Demo: <span className="font-medium">owner / admin123</span> ·{" "}
-          <span className="font-medium">fika / bidan123</span>
+          Demo Owner: <span className="font-medium">zai190191 / 190191</span> ·{" "}
+          Bidan: <span className="font-medium">fika / bidan123</span>
         </p>
       </div>
     </div>
