@@ -16,7 +16,7 @@ interface JasmedState {
     data: { name: string; username: string; password: string },
   ) => void;
   deleteBidan: (id: string) => void;
-  addTarif: (t: Omit<Tarif, "id">) => void;
+  addTarif: (t: Omit<Tarif, "id">) => Tarif;
   updateTarif: (id: string, t: Omit<Tarif, "id">) => void;
   deleteTarif: (id: string) => void;
   addTransaksi: (t: Omit<Transaksi, "id" | "createdAt">) => void;
