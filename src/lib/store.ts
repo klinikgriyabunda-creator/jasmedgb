@@ -16,6 +16,12 @@ interface JasmedState {
     data: { name: string; username: string; password: string },
   ) => void;
   deleteBidan: (id: string) => void;
+  addOwner: (data: { name: string; username: string; password: string; email?: string }) => void;
+  updateOwner: (
+    id: string,
+    data: { name: string; username: string; password: string; email?: string },
+  ) => void;
+  deleteOwner: (id: string) => void;
   addTarif: (t: Omit<Tarif, "id">) => Tarif;
   updateTarif: (id: string, t: Omit<Tarif, "id">) => void;
   deleteTarif: (id: string) => void;
