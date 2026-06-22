@@ -12,6 +12,7 @@ import {
   ListChecks,
   Users as UsersIcon,
   UserCog,
+  KeyRound,
   LogOut,
   Activity,
   Menu,
