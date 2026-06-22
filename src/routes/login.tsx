@@ -1,12 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Activity, ShieldCheck, Stethoscope, Lock, User as UserIcon } from "lucide-react";
+import { Activity, ShieldCheck, Stethoscope, Lock, User as UserIcon, Mail, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
+import type { User } from "@/lib/types";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
