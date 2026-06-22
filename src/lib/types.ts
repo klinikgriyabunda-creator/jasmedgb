@@ -6,6 +6,7 @@ export interface User {
   role: Role;
   username: string;
   password: string;
+  email?: string;
 }
 
 export interface Tarif {

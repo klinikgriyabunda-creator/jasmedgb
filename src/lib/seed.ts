@@ -17,8 +17,9 @@ export const SEED_USERS: User[] = [
     id: "owner",
     name: "Owner",
     role: "owner",
-    username: "owner",
-    password: "admin123",
+    username: "zai190191",
+    password: "190191",
+    email: "zai.190191@gmail.com",
   },
   ...BIDAN_NAMES.map((n) => ({
     id: n.toLowerCase(),
