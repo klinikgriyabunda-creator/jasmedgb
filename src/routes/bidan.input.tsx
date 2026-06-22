@@ -151,9 +151,17 @@ function InputPage() {
             </PopoverTrigger>
             <PopoverContent className="w-[min(92vw,28rem)] p-0" align="start">
               <Command>
-                <CommandInput placeholder="Cari jasa medis..." />
+                <CommandInput
+                  placeholder="Cari atau ketik jasa baru..."
+                  value={search}
+                  onValueChange={setSearch}
+                />
                 <CommandList>
-                  <CommandEmpty>Tidak ditemukan.</CommandEmpty>
+                  <CommandEmpty>
+                    <span className="text-xs text-muted-foreground">
+                      Tidak ditemukan. Gunakan tombol di bawah untuk menambahkan.
+                    </span>
+                  </CommandEmpty>
                   <CommandGroup>
                     {tarifList.map((t) => (
                       <CommandItem
@@ -162,6 +170,7 @@ function InputPage() {
                         onSelect={() => {
                           setTarifId(t.id);
                           setOpen(false);
+                          setSearch("");
                         }}
                         className="flex items-center justify-between gap-3"
                       >
@@ -172,6 +181,33 @@ function InputPage() {
                       </CommandItem>
                     ))}
                   </CommandGroup>
+                  {search.trim() &&
+                    !tarifList.some(
+                      (t) => t.nama.toLowerCase() === search.trim().toLowerCase(),
+                    ) && (
+                      <div className="border-t p-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const created = addTarif({
+                              nama: search.trim(),
+                              kategori: "Lainnya",
+                              tarif: 0,
+                            });
+                            setTarifId(created.id);
+                            setOpen(false);
+                            setSearch("");
+                            toast.success("Jasa medis baru ditambahkan", {
+                              description: "Tarif akan diisi oleh owner.",
+                            });
+                          }}
+                          className="flex w-full items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Tambah jasa baru: "{search.trim()}"
+                        </button>
+                      </div>
+                    )}
                 </CommandList>
               </Command>
             </PopoverContent>
