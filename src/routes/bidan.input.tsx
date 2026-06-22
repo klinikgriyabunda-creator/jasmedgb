@@ -85,9 +85,9 @@ function InputPage() {
       pasien: pasien.trim(),
       tarifId: tarif.id,
       tarifNama: tarif.nama,
-      tarifNominal: 0, // owner mengisi nominalnya nanti
+      tarifNominal: tarif.tarif, // otomatis dari master tarif (0 jika owner belum mengisi)
       jumlah,
-      subtotal: 0,
+      subtotal: tarif.tarif * jumlah,
     });
     toast.success("Tindakan tersimpan", {
       description: `${tarif.nama} · ${jumlah}x`,
