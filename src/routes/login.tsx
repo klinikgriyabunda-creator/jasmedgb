@@ -146,3 +146,88 @@ function LoginPage() {
     </div>
   );
 }
+
+function ForgotPassword({ users }: { users: User[] }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [result, setResult] = useState<User | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  const check = () => {
+    const found = users.find(
+      (u) =>
+        u.role === "owner" &&
+        (u.email ?? "").toLowerCase() === email.trim().toLowerCase(),
+    );
+    setResult(found ?? null);
+    setChecked(true);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) {
+          setEmail("");
+          setResult(null);
+          setChecked(false);
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="mx-auto block text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          Lupa password?
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <KeyRound className="h-5 w-5 text-primary" /> Pemulihan Password
+          </DialogTitle>
+          <DialogDescription>
+            Masukkan email pemulihan yang terdaftar untuk akun owner.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label>Email pemulihan</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="email"
+              className="h-11 pl-9"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="zai.190191@gmail.com"
+            />
+          </div>
+          {checked && result && (
+            <div className="rounded-lg border bg-primary-soft/40 p-3 text-sm">
+              <p className="font-medium">Akun ditemukan: {result.name}</p>
+              <p className="mt-1 text-muted-foreground">
+                Username: <span className="font-mono font-medium text-foreground">{result.username}</span>
+              </p>
+              <p className="text-muted-foreground">
+                Password: <span className="font-mono font-medium text-foreground">{result.password}</span>
+              </p>
+            </div>
+          )}
+          {checked && !result && (
+            <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              Email tidak terdaftar pada akun owner manapun.
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Tutup
+          </Button>
+          <Button onClick={check}>Cek Email</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
