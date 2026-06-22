@@ -43,6 +43,7 @@ function InputPage() {
   const [tarifId, setTarifId] = useState("");
   const [jumlah, setJumlah] = useState(1);
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [partnerOn, setPartnerOn] = useState(false);
   const [partnerId, setPartnerId] = useState("");
 
