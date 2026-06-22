@@ -76,6 +76,31 @@ export const useStore = create<JasmedState>()(
         })),
       deleteBidan: (id) =>
         set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
+      addOwner: ({ name, username, password, email }) =>
+        set((s) => {
+          const base = slug(name) || `owner-${Date.now()}`;
+          let id = base;
+          let i = 2;
+          while (s.users.some((u) => u.id === id)) id = `${base}-${i++}`;
+          return {
+            users: [
+              ...s.users,
+              { id, name, role: "owner", username, password, email },
+            ],
+          };
+        }),
+      updateOwner: (id, { name, username, password, email }) =>
+        set((s) => ({
+          users: s.users.map((u) =>
+            u.id === id ? { ...u, name, username, password, email } : u,
+          ),
+          currentUser:
+            s.currentUser?.id === id
+              ? { ...s.currentUser, name, username, password, email }
+              : s.currentUser,
+        })),
+      deleteOwner: (id) =>
+        set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
       addTarif: (t) => {
         const created: Tarif = { ...t, id: crypto.randomUUID() };
         set((s) => ({ tarif: [...s.tarif, created] }));
