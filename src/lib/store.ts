@@ -70,10 +70,11 @@ export const useStore = create<JasmedState>()(
         })),
       deleteBidan: (id) =>
         set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
-      addTarif: (t) =>
-        set((s) => ({
-          tarif: [...s.tarif, { ...t, id: crypto.randomUUID() }],
-        })),
+      addTarif: (t) => {
+        const created: Tarif = { ...t, id: crypto.randomUUID() };
+        set((s) => ({ tarif: [...s.tarif, created] }));
+        return created;
+      },
       updateTarif: (id, t) =>
         set((s) => ({
           tarif: s.tarif.map((x) => (x.id === id ? { ...t, id } : x)),
