@@ -78,6 +78,16 @@ export const useStore = create<JasmedState>()(
       updateTarif: (id, t) =>
         set((s) => ({
           tarif: s.tarif.map((x) => (x.id === id ? { ...t, id } : x)),
+          transaksi: s.transaksi.map((tx) =>
+            tx.tarifId === id && tx.tarifNominal === 0
+              ? {
+                  ...tx,
+                  tarifNama: t.nama,
+                  tarifNominal: t.tarif,
+                  subtotal: t.tarif * tx.jumlah,
+                }
+              : tx,
+          ),
         })),
       deleteTarif: (id) =>
         set((s) => ({ tarif: s.tarif.filter((x) => x.id !== id) })),
