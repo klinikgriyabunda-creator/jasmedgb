@@ -151,7 +151,7 @@ export const useStore = create<JasmedState>()(
     }),
     {
       name: "jasmed-store",
-      version: 2,
+      version: 3,
       migrate: () => ({
         currentUser: null,
         users: SEED_USERS,
