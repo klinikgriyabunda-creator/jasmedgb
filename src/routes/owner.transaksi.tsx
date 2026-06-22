@@ -317,7 +317,14 @@ function EditTransaksiForm({
 
         <div className="space-y-1.5">
           <Label>Jasa Medis</Label>
-          <Select value={tarifId} onValueChange={setTarifId}>
+          <Select
+            value={tarifId}
+            onValueChange={(v) => {
+              setTarifId(v);
+              const picked = tarifList.find((x) => x.id === v);
+              if (picked) setTarifNominal(picked.tarif);
+            }}
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent className="max-h-72">
               {tarifList.map((x) => (
@@ -325,6 +332,9 @@ function EditTransaksiForm({
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            Tarif otomatis terisi dari Master Tarif. Anda bisa menyesuaikan jika perlu.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">

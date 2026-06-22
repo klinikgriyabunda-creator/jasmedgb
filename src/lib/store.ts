@@ -16,7 +16,7 @@ interface JasmedState {
     data: { name: string; username: string; password: string },
   ) => void;
   deleteBidan: (id: string) => void;
-  addTarif: (t: Omit<Tarif, "id">) => void;
+  addTarif: (t: Omit<Tarif, "id">) => Tarif;
   updateTarif: (id: string, t: Omit<Tarif, "id">) => void;
   deleteTarif: (id: string) => void;
   addTransaksi: (t: Omit<Transaksi, "id" | "createdAt">) => void;
@@ -70,13 +70,24 @@ export const useStore = create<JasmedState>()(
         })),
       deleteBidan: (id) =>
         set((s) => ({ users: s.users.filter((u) => u.id !== id) })),
-      addTarif: (t) =>
-        set((s) => ({
-          tarif: [...s.tarif, { ...t, id: crypto.randomUUID() }],
-        })),
+      addTarif: (t) => {
+        const created: Tarif = { ...t, id: crypto.randomUUID() };
+        set((s) => ({ tarif: [...s.tarif, created] }));
+        return created;
+      },
       updateTarif: (id, t) =>
         set((s) => ({
           tarif: s.tarif.map((x) => (x.id === id ? { ...t, id } : x)),
+          transaksi: s.transaksi.map((tx) =>
+            tx.tarifId === id && tx.tarifNominal === 0
+              ? {
+                  ...tx,
+                  tarifNama: t.nama,
+                  tarifNominal: t.tarif,
+                  subtotal: t.tarif * tx.jumlah,
+                }
+              : tx,
+          ),
         })),
       deleteTarif: (id) =>
         set((s) => ({ tarif: s.tarif.filter((x) => x.id !== id) })),
