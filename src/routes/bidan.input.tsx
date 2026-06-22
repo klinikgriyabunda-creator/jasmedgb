@@ -31,6 +31,7 @@ function InputPage() {
   const users = useStore((s) => s.users);
   const tarifList = useStore((s) => s.tarif);
   const addTransaksi = useStore((s) => s.addTransaksi);
+  const addTarif = useStore((s) => s.addTarif);
 
   const otherBidans = useMemo(
     () => users.filter((u) => u.role === "bidan" && u.id !== user?.id),
