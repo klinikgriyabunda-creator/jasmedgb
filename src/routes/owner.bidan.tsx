@@ -49,16 +49,20 @@ function BidanManagePage() {
           <BidanForm
             editing={editing}
             existingUsernames={users.map((u) => u.username.toLowerCase())}
-            onSubmit={(v) => {
-              if (editing) {
-                updateBidan(editing.id, v);
-                toast.success("Data bidan diperbarui");
-              } else {
-                addBidan(v);
-                toast.success("Bidan ditambahkan");
+            onSubmit={async (v) => {
+              try {
+                if (editing) {
+                  await updateBidan(editing.id, v);
+                  toast.success("Data bidan diperbarui");
+                } else {
+                  await addBidan(v);
+                  toast.success("Bidan ditambahkan");
+                }
+                setOpenForm(false);
+                setEditing(null);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
               }
-              setOpenForm(false);
-              setEditing(null);
             }}
           />
         </Dialog>
@@ -150,13 +154,16 @@ function BidanManagePage() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => {
+                            onClick={async () => {
                               if (count > 0) {
                                 return toast.error("Tidak bisa menghapus: bidan ini punya transaksi");
                               }
-                              if (confirm(`Hapus "${b.name}"?`)) {
-                                deleteBidan(b.id);
+                              if (!confirm(`Hapus "${b.name}"?`)) return;
+                              try {
+                                await deleteBidan(b.id);
                                 toast.success("Bidan dihapus");
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : "Gagal hapus");
                               }
                             }}
                           >
@@ -220,19 +227,22 @@ function BidanForm({
           <p className="text-xs text-muted-foreground">Akan ditampilkan sebagai "Bidan {name || "..."}"</p>
         </div>
         <div className="space-y-2">
-          <Label>Username</Label>
+          <Label>Email Login</Label>
           <Input
+            type="email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="mis. fika"
+            placeholder="mis. fika@klinik.com"
           />
+          <p className="text-xs text-muted-foreground">Bidan akan login menggunakan email ini.</p>
         </div>
         <div className="space-y-2">
           <Label>Password</Label>
           <Input
+            type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password login bidan"
+            placeholder="Min. 6 karakter"
           />
         </div>
         <DialogFooter>

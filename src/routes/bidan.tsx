@@ -23,15 +23,17 @@ const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
 
 function BidanLayout() {
   const user = useStore((s) => s.currentUser);
+  const ready = useStore((s) => s.ready);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
+    if (!ready) return;
     if (!user) navigate({ to: "/login", replace: true });
     else if (user.role !== "bidan") navigate({ to: "/owner", replace: true });
-  }, [user, navigate]);
+  }, [user, ready, navigate]);
 
-  if (!user || user.role !== "bidan") return null;
+  if (!ready || !user || user.role !== "bidan") return null;
 
   return (
     <div className="min-h-screen bg-background pb-24">

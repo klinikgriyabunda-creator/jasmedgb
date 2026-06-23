@@ -71,34 +71,33 @@ function AkunPage() {
     setOpen(true);
   };
 
-  const submit = () => {
-    if (!form.name.trim() || !form.username.trim() || !form.password.trim()) {
-      toast.error("Nama, username, dan password wajib diisi");
+  const submit = async () => {
+    if (!form.name.trim() || !form.username.trim()) {
+      toast.error("Nama dan email login wajib diisi");
       return;
     }
-    const dup = owners.some(
-      (o) =>
-        o.username.toLowerCase() === form.username.trim().toLowerCase() &&
-        o.id !== editing?.id,
-    );
-    if (dup) {
-      toast.error("Username sudah dipakai owner lain");
+    if (!editing && !form.password.trim()) {
+      toast.error("Password wajib untuk akun baru");
       return;
     }
     const payload = {
       name: form.name.trim(),
       username: form.username.trim(),
       password: form.password,
-      email: form.email.trim() || undefined,
+      email: form.email.trim() || form.username.trim(),
     };
-    if (editing) {
-      updateOwner(editing.id, payload);
-      toast.success("Akun owner diperbarui");
-    } else {
-      addOwner(payload);
-      toast.success("Akun owner ditambahkan");
+    try {
+      if (editing) {
+        await updateOwner(editing.id, payload);
+        toast.success("Akun owner diperbarui");
+      } else {
+        await addOwner(payload);
+        toast.success("Akun owner ditambahkan");
+      }
+      setOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
     }
-    setOpen(false);
   };
 
   return (
@@ -146,9 +145,13 @@ function AkunPage() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Batal</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => {
-                            deleteOwner(o.id);
-                            toast.success("Akun owner dihapus");
+                          onClick={async () => {
+                            try {
+                              await deleteOwner(o.id);
+                              toast.success("Akun owner dihapus");
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : "Gagal hapus");
+                            }
                           }}
                         >
                           Hapus
@@ -212,11 +215,12 @@ function AkunPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Username</Label>
+              <Label>Email Login</Label>
               <Input
+                type="email"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="mis. zai190191"
+                placeholder="mis. owner@klinik.com"
               />
             </div>
             <div className="space-y-1.5">
