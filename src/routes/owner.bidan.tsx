@@ -49,16 +49,20 @@ function BidanManagePage() {
           <BidanForm
             editing={editing}
             existingUsernames={users.map((u) => u.username.toLowerCase())}
-            onSubmit={(v) => {
-              if (editing) {
-                updateBidan(editing.id, v);
-                toast.success("Data bidan diperbarui");
-              } else {
-                addBidan(v);
-                toast.success("Bidan ditambahkan");
+            onSubmit={async (v) => {
+              try {
+                if (editing) {
+                  await updateBidan(editing.id, v);
+                  toast.success("Data bidan diperbarui");
+                } else {
+                  await addBidan(v);
+                  toast.success("Bidan ditambahkan");
+                }
+                setOpenForm(false);
+                setEditing(null);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Gagal menyimpan");
               }
-              setOpenForm(false);
-              setEditing(null);
             }}
           />
         </Dialog>
