@@ -73,7 +73,12 @@ async function fetchAll(currentUserId: string, isOwner: boolean) {
     tarif = (data ?? []).map((t) => ({ id: t.id, nama: t.nama, kategori: t.kategori, tarif: Number(t.tarif) }));
   } else {
     const { data } = await supabase.from("tarif_public").select("id, nama, kategori").order("nama");
-    tarif = (data ?? []).map((t) => ({ id: t.id, nama: t.nama, kategori: t.kategori, tarif: 0 }));
+    tarif = (data ?? []).map((t) => ({
+      id: t.id ?? "",
+      nama: t.nama ?? "",
+      kategori: t.kategori ?? "",
+      tarif: 0,
+    }));
   }
 
   // transaksi: owner pakai tabel, bidan pakai view
