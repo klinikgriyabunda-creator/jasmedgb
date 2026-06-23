@@ -37,21 +37,23 @@ const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: bo
 
 function OwnerLayout() {
   const user = useStore((s) => s.currentUser);
+  const ready = useStore((s) => s.ready);
   const logout = useStore((s) => s.logout);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openMobile, setOpenMobile] = useState(false);
 
   useEffect(() => {
+    if (!ready) return;
     if (!user) navigate({ to: "/login", replace: true });
     else if (user.role !== "owner") navigate({ to: "/bidan", replace: true });
-  }, [user, navigate]);
+  }, [user, ready, navigate]);
 
   useEffect(() => {
     setOpenMobile(false);
   }, [pathname]);
 
-  if (!user || user.role !== "owner") return null;
+  if (!ready || !user || user.role !== "owner") return null;
 
   return (
     <div className="min-h-screen bg-background lg:flex">
