@@ -215,11 +215,12 @@ function AkunPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Username</Label>
+              <Label>Email Login</Label>
               <Input
+                type="email"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="mis. zai190191"
+                placeholder="mis. owner@klinik.com"
               />
             </div>
             <div className="space-y-1.5">
