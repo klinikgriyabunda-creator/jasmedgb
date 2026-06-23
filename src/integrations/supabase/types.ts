@@ -14,16 +14,249 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          nama: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          nama: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nama?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tarif: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kategori: string
+          nama: string
+          tarif: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kategori?: string
+          nama: string
+          tarif?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kategori?: string
+          nama?: string
+          tarif?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transaksi: {
+        Row: {
+          catatan: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          jumlah: number
+          subtotal: number
+          tanggal: string
+          tarif_id: string
+          tarif_nominal: number
+          updated_at: string
+        }
+        Insert: {
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jumlah?: number
+          subtotal?: number
+          tanggal?: string
+          tarif_id: string
+          tarif_nominal?: number
+          updated_at?: string
+        }
+        Update: {
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jumlah?: number
+          subtotal?: number
+          tanggal?: string
+          tarif_id?: string
+          tarif_nominal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaksi_tarif_id_fkey"
+            columns: ["tarif_id"]
+            isOneToOne: false
+            referencedRelation: "tarif"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaksi_tarif_id_fkey"
+            columns: ["tarif_id"]
+            isOneToOne: false
+            referencedRelation: "tarif_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaksi_bidan: {
+        Row: {
+          bidan_id: string
+          transaksi_id: string
+        }
+        Insert: {
+          bidan_id: string
+          transaksi_id: string
+        }
+        Update: {
+          bidan_id?: string
+          transaksi_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaksi_bidan_bidan_id_fkey"
+            columns: ["bidan_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaksi_bidan_transaksi_id_fkey"
+            columns: ["transaksi_id"]
+            isOneToOne: false
+            referencedRelation: "transaksi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaksi_bidan_transaksi_id_fkey"
+            columns: ["transaksi_id"]
+            isOneToOne: false
+            referencedRelation: "transaksi_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      tarif_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          kategori: string | null
+          nama: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          kategori?: string | null
+          nama?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          kategori?: string | null
+          nama?: string | null
+        }
+        Relationships: []
+      }
+      transaksi_public: {
+        Row: {
+          catatan: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string | null
+          jumlah: number | null
+          tanggal: string | null
+          tarif_id: string | null
+        }
+        Insert: {
+          catatan?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string | null
+          jumlah?: number | null
+          tanggal?: string | null
+          tarif_id?: string | null
+        }
+        Update: {
+          catatan?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string | null
+          jumlah?: number | null
+          tanggal?: string | null
+          tarif_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaksi_tarif_id_fkey"
+            columns: ["tarif_id"]
+            isOneToOne: false
+            referencedRelation: "tarif"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaksi_tarif_id_fkey"
+            columns: ["tarif_id"]
+            isOneToOne: false
+            referencedRelation: "tarif_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "bidan"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +383,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "bidan"],
+    },
   },
 } as const
