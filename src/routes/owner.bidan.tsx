@@ -154,13 +154,16 @@ function BidanManagePage() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => {
+                            onClick={async () => {
                               if (count > 0) {
                                 return toast.error("Tidak bisa menghapus: bidan ini punya transaksi");
                               }
-                              if (confirm(`Hapus "${b.name}"?`)) {
-                                deleteBidan(b.id);
+                              if (!confirm(`Hapus "${b.name}"?`)) return;
+                              try {
+                                await deleteBidan(b.id);
                                 toast.success("Bidan dihapus");
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : "Gagal hapus");
                               }
                             }}
                           >
