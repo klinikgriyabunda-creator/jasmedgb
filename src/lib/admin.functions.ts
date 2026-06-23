@@ -34,10 +34,7 @@ export const adminUpsertUser = createServerFn({ method: "POST" })
       });
       if (error) throw new Error(error.message);
       userId = created.user.id;
-      // Trigger akan buat profile + role 'owner' utk user pertama.
-      // Pastikan profile ada dgn nama yg benar:
-      await supabaseAdmin.from("profiles").upsert({ id: userId!, nama: data.nama });
-      // Hapus role default jika ada, lalu set role yg diminta
+      await supabaseAdmin.from("profiles").upsert({ id: userId!, nama: data.nama, email: data.email });
       await supabaseAdmin.from("user_roles").delete().eq("user_id", userId!);
       await supabaseAdmin.from("user_roles").insert({ user_id: userId!, role: data.role });
     } else {
