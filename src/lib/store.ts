@@ -116,17 +116,17 @@ async function fetchAll(currentUserId: string, isOwner: boolean) {
     transaksi = (data ?? []).map((row) => {
       const bidanIds = (row.transaksi_bidan ?? []).map((tb: { bidan_id: string }) => tb.bidan_id);
       return {
-        id: row.id,
-        tanggal: row.tanggal,
+        id: row.id ?? "",
+        tanggal: row.tanggal ?? "",
         bidanIds,
         bidanNamas: bidanIds.map((id: string) => profileNameMap.get(id) ?? "—"),
         pasien: "",
-        tarifId: row.tarif_id,
-        tarifNama: tarifNameMap.get(row.tarif_id) ?? "—",
+        tarifId: row.tarif_id ?? "",
+        tarifNama: tarifNameMap.get(row.tarif_id ?? "") ?? "—",
         tarifNominal: 0,
-        jumlah: row.jumlah,
+        jumlah: row.jumlah ?? 0,
         subtotal: 0,
-        createdAt: row.created_at,
+        createdAt: row.created_at ?? "",
       };
     });
   }
