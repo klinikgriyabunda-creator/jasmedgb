@@ -48,8 +48,8 @@ function ProfilPage() {
       <Button
         variant="outline"
         className="h-12 w-full text-destructive hover:bg-destructive hover:text-destructive-foreground"
-        onClick={() => {
-          logout();
+        onClick={async () => {
+          await logout();
           navigate({ to: "/login", replace: true });
         }}
       >
