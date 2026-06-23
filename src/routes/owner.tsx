@@ -131,8 +131,8 @@ function OwnerLayout() {
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               navigate({ to: "/login", replace: true });
             }}
           >
