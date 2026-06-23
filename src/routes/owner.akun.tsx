@@ -145,9 +145,13 @@ function AkunPage() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Batal</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => {
-                            deleteOwner(o.id);
-                            toast.success("Akun owner dihapus");
+                          onClick={async () => {
+                            try {
+                              await deleteOwner(o.id);
+                              toast.success("Akun owner dihapus");
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : "Gagal hapus");
+                            }
                           }}
                         >
                           Hapus
