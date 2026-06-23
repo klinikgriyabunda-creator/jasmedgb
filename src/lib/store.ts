@@ -54,16 +54,13 @@ function asUser(row: { id: string; nama: string; email?: string | null }, role: 
 }
 
 async function fetchAll(currentUserId: string, isOwner: boolean) {
-  // profiles
-  const { data: profiles } = await supabase.from("profiles").select("id, nama");
-  // roles
+  const { data: profiles } = await supabase.from("profiles").select("id, nama, email");
   const { data: roles } = await supabase.from("user_roles").select("user_id, role");
   const roleMap = new Map<string, "owner" | "bidan">();
   (roles ?? []).forEach((r: { user_id: string; role: string }) => roleMap.set(r.user_id, r.role as "owner" | "bidan"));
 
-  // emails: hanya owner yang bisa lihat (via admin RPC alternative — kita skip; pakai placeholder = nama)
-  const users: User[] = (profiles ?? []).map((p: { id: string; nama: string }) =>
-    asUser({ id: p.id, nama: p.nama }, roleMap.get(p.id) ?? "bidan"),
+  const users: User[] = (profiles ?? []).map((p: { id: string; nama: string; email: string | null }) =>
+    asUser({ id: p.id, nama: p.nama, email: p.email }, roleMap.get(p.id) ?? "bidan"),
   );
 
   // tarif: owner pakai tabel asli (kolom tarif), bidan pakai view tanpa harga
