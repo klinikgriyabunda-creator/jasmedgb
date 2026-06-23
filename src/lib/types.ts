@@ -4,8 +4,8 @@ export interface User {
   id: string;
   name: string;
   role: Role;
-  username: string;
-  password: string;
+  username: string; // = email
+  password: string; // hidden (placeholder "•••" for legacy UI)
   email?: string;
 }
 
@@ -18,14 +18,14 @@ export interface Tarif {
 
 export interface Transaksi {
   id: string;
-  tanggal: string; // ISO date yyyy-mm-dd
-  bidanIds: string[]; // 1 atau 2 bidan
+  tanggal: string;
+  bidanIds: string[];
   bidanNamas: string[];
   pasien: string;
   tarifId: string;
   tarifNama: string;
-  tarifNominal: number; // owner-controlled; 0 jika belum diisi
+  tarifNominal: number;
   jumlah: number;
-  subtotal: number; // tarifNominal * jumlah
+  subtotal: number;
   createdAt: string;
 }
