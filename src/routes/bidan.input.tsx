@@ -188,18 +188,22 @@ function InputPage() {
                       <div className="border-t p-2">
                         <button
                           type="button"
-                          onClick={() => {
-                            const created = addTarif({
-                              nama: search.trim(),
-                              kategori: "Lainnya",
-                              tarif: 0,
-                            });
-                            setTarifId(created.id);
-                            setOpen(false);
-                            setSearch("");
-                            toast.success("Jasa medis baru ditambahkan", {
-                              description: "Tarif akan diisi oleh owner.",
-                            });
+                          onClick={async () => {
+                            try {
+                              const created = await addTarif({
+                                nama: search.trim(),
+                                kategori: "Lainnya",
+                                tarif: 0,
+                              });
+                              setTarifId(created.id);
+                              setOpen(false);
+                              setSearch("");
+                              toast.success("Jasa medis baru ditambahkan", {
+                                description: "Tarif akan diisi oleh owner.",
+                              });
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : "Gagal menambah jasa");
+                            }
                           }}
                           className="flex w-full items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10"
                         >
