@@ -220,19 +220,22 @@ function BidanForm({
           <p className="text-xs text-muted-foreground">Akan ditampilkan sebagai "Bidan {name || "..."}"</p>
         </div>
         <div className="space-y-2">
-          <Label>Username</Label>
+          <Label>Email Login</Label>
           <Input
+            type="email"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="mis. fika"
+            placeholder="mis. fika@klinik.com"
           />
+          <p className="text-xs text-muted-foreground">Bidan akan login menggunakan email ini.</p>
         </div>
         <div className="space-y-2">
           <Label>Password</Label>
           <Input
+            type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password login bidan"
+            placeholder="Min. 6 karakter"
           />
         </div>
         <DialogFooter>
