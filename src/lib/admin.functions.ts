@@ -46,7 +46,7 @@ export const adminUpsertUser = createServerFn({ method: "POST" })
       if (data.password) update.password = data.password;
       const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, update);
       if (error) throw new Error(error.message);
-      await supabaseAdmin.from("profiles").update({ nama: data.nama }).eq("id", userId);
+      await supabaseAdmin.from("profiles").update({ nama: data.nama, email: data.email }).eq("id", userId);
       await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
       await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: data.role });
     }
