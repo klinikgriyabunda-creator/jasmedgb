@@ -257,6 +257,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_bidan_of_transaksi: {
+        Args: { _transaksi_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "owner" | "bidan"
