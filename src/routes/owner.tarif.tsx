@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -174,6 +174,12 @@ function TarifForm({
   const [nama, setNama] = useState(editing?.nama ?? "");
   const [kategori, setKategori] = useState(editing?.kategori ?? "");
   const [tarif, setTarif] = useState(editing?.tarif ?? 0);
+
+  useEffect(() => {
+    setNama(editing?.nama ?? "");
+    setKategori(editing?.kategori ?? "");
+    setTarif(editing?.tarif ?? 0);
+  }, [editing]);
 
   return (
     <DialogContent>
