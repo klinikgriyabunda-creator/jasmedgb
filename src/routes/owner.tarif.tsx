@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Check, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,14 @@ function TarifPage() {
   const addTarif = useStore((s) => s.addTarif);
   const updateTarif = useStore((s) => s.updateTarif);
   const deleteTarif = useStore((s) => s.deleteTarif);
+  const pendingTarif = useStore((s) => s.pendingTarif);
+  const approveTarifPending = useStore((s) => s.approveTarifPending);
+  const rejectTarifPending = useStore((s) => s.rejectTarifPending);
+
+  const pending = useMemo(
+    () => pendingTarif.filter((p) => p.status === "pending"),
+    [pendingTarif],
+  );
 
   const [search, setSearch] = useState("");
   const [kategori, setKategori] = useState("all");
