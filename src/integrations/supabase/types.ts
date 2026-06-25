@@ -68,8 +68,53 @@ export type Database = {
         }
         Relationships: []
       }
+      tarif_pending: {
+        Row: {
+          bidan_id: string | null
+          bidan_nama: string | null
+          created_at: string
+          id: string
+          kategori: string
+          nama: string
+          status: string
+          tarif: number
+          updated_at: string
+        }
+        Insert: {
+          bidan_id?: string | null
+          bidan_nama?: string | null
+          created_at?: string
+          id?: string
+          kategori?: string
+          nama: string
+          status?: string
+          tarif?: number
+          updated_at?: string
+        }
+        Update: {
+          bidan_id?: string | null
+          bidan_nama?: string | null
+          created_at?: string
+          id?: string
+          kategori?: string
+          nama?: string
+          status?: string
+          tarif?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarif_pending_bidan_id_fkey"
+            columns: ["bidan_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaksi: {
         Row: {
+          bidan_partner_id: string | null
           catatan: string | null
           created_at: string
           created_by: string | null
@@ -82,6 +127,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bidan_partner_id?: string | null
           catatan?: string | null
           created_at?: string
           created_by?: string | null
@@ -94,6 +140,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bidan_partner_id?: string | null
           catatan?: string | null
           created_at?: string
           created_by?: string | null
@@ -106,6 +153,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transaksi_bidan_partner_id_fkey"
+            columns: ["bidan_partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transaksi_tarif_id_fkey"
             columns: ["tarif_id"]
