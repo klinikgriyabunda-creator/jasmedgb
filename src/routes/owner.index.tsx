@@ -13,7 +13,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { TrendingUp, Receipt, Crown, Users, AlertCircle } from "lucide-react";
+import { TrendingUp, Receipt, Crown, Users, AlertCircle, Bell } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
 import { formatRupiah, todayISO } from "@/lib/format";
 
