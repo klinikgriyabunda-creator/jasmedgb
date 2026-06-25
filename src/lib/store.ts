@@ -266,6 +266,45 @@ export const useStore = create<JasmedState>()((set, get) => ({
     set((s) => ({ tarif: s.tarif.filter((x) => x.id !== id) }));
   },
 
+  requestTarifPending: async ({ nama, kategori }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Tidak ada sesi");
+    const current = get().currentUser;
+    const { error } = await supabase.from("tarif_pending").insert({
+      nama: nama.trim(),
+      kategori: kategori?.trim() || "Lainnya",
+      tarif: 0,
+      bidan_id: user.id,
+      bidan_nama: current?.name ?? null,
+      status: "pending",
+    });
+    if (error) throw error;
+    await get().refresh();
+  },
+  approveTarifPending: async (id, tarif) => {
+    const pending = get().pendingTarif.find((p) => p.id === id);
+    if (!pending) throw new Error("Data tidak ditemukan");
+    const { error: insErr } = await supabase
+      .from("tarif")
+      .insert({ nama: pending.nama, kategori: pending.kategori, tarif });
+    if (insErr) throw insErr;
+    const { error: updErr } = await supabase
+      .from("tarif_pending")
+      .update({ status: "approved", tarif })
+      .eq("id", id);
+    if (updErr) throw updErr;
+    await get().refresh();
+  },
+  rejectTarifPending: async (id) => {
+    const { error } = await supabase
+      .from("tarif_pending")
+      .update({ status: "rejected" })
+      .eq("id", id);
+    if (error) throw error;
+    await get().refresh();
+  },
+
+
   addTransaksi: async (t) => {
     const { data, error } = await supabase
       .from("transaksi")
