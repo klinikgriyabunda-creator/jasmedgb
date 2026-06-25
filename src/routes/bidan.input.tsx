@@ -60,11 +60,13 @@ function InputPage() {
     setPartnerId("");
   };
 
-  const submit = (e: React.FormEvent, again: boolean) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent, again: boolean) => {
     e.preventDefault();
     if (!user) return;
     if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
-    if (!tarif) return toast.error("Pilih jasa medis");
+    if (!tarif) return toast.error("Pilih jasa medis dulu");
     if (jumlah < 1) return toast.error("Jumlah minimal 1");
     if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
 
@@ -78,22 +80,30 @@ function InputPage() {
       }
     }
 
-    addTransaksi({
-      tanggal,
-      bidanIds,
-      bidanNamas,
-      pasien: pasien.trim(),
-      tarifId: tarif.id,
-      tarifNama: tarif.nama,
-      tarifNominal: tarif.tarif, // otomatis dari master tarif (0 jika owner belum mengisi)
-      jumlah,
-      subtotal: tarif.tarif * jumlah,
-    });
-    toast.success("Tindakan tersimpan", {
-      description: `${tarif.nama} · ${jumlah}x`,
-    });
-    if (again) reset();
-    else navigate({ to: "/bidan/riwayat" });
+    setSaving(true);
+    try {
+      await addTransaksi({
+        tanggal,
+        bidanIds,
+        bidanNamas,
+        pasien: pasien.trim(),
+        tarifId: tarif.id,
+        tarifNama: tarif.nama,
+        tarifNominal: tarif.tarif, // trigger DB fill_tarif_nominal akan isi otomatis bila 0
+        jumlah,
+        subtotal: tarif.tarif * jumlah,
+      });
+      toast.success("Tindakan berhasil disimpan", {
+        description: `${tarif.nama} · ${jumlah}x`,
+      });
+      if (again) reset();
+      else navigate({ to: "/bidan/riwayat" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error("Gagal menyimpan", { description: msg });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
