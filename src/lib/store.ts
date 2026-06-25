@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { adminDeleteUser, adminUpsertUser } from "./admin.functions";
-import type { Tarif, Transaksi, User } from "./types";
+import type { Tarif, TarifPending, Transaksi, User } from "./types";
 
 interface JasmedState {
   currentUser: User | null;
   users: User[];
   tarif: Tarif[];
   transaksi: Transaksi[];
+  pendingTarif: TarifPending[];
   ready: boolean;
 
   // internals
@@ -33,6 +34,10 @@ interface JasmedState {
   addTarif: (t: Omit<Tarif, "id">) => Promise<Tarif>;
   updateTarif: (id: string, t: Omit<Tarif, "id">) => Promise<void>;
   deleteTarif: (id: string) => Promise<void>;
+
+  requestTarifPending: (data: { nama: string; kategori?: string }) => Promise<void>;
+  approveTarifPending: (id: string, tarif: number) => Promise<void>;
+  rejectTarifPending: (id: string) => Promise<void>;
 
   addTransaksi: (t: Omit<Transaksi, "id" | "createdAt">) => Promise<void>;
   updateTransaksi: (id: string, t: Omit<Transaksi, "id" | "createdAt">) => Promise<void>;
