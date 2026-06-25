@@ -271,3 +271,60 @@ function TarifForm({
     </DialogContent>
   );
 }
+
+function PendingRow({
+  pending,
+  onApprove,
+  onReject,
+}: {
+  pending: import("@/lib/types").TarifPending;
+  onApprove: (tarif: number) => void | Promise<void>;
+  onReject: () => void | Promise<void>;
+}) {
+  const [tarif, setTarif] = useState<number>(0);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{pending.nama}</p>
+        <p className="text-xs text-muted-foreground">
+          {pending.kategori} · diminta oleh {pending.bidanNama ?? "—"}
+        </p>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Tarif (Rp)</Label>
+        <Input
+          type="number"
+          min={0}
+          value={tarif}
+          onChange={(e) => setTarif(Number(e.target.value) || 0)}
+          className="h-9 w-36"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          disabled={busy || tarif <= 0}
+          onClick={async () => {
+            setBusy(true);
+            try { await onApprove(tarif); } finally { setBusy(false); }
+          }}
+        >
+          <Check className="mr-1 h-4 w-4" /> Approve
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try { await onReject(); } finally { setBusy(false); }
+          }}
+        >
+          <X className="mr-1 h-4 w-4" /> Tolak
+        </Button>
+      </div>
+    </div>
+  );
+}
+
