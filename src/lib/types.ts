@@ -29,3 +29,14 @@ export interface Transaksi {
   subtotal: number;
   createdAt: string;
 }
+
+export interface TarifPending {
+  id: string;
+  nama: string;
+  kategori: string;
+  tarif: number;
+  bidanId: string | null;
+  bidanNama: string | null;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
