@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { adminDeleteUser, adminUpsertUser } from "./admin.functions";
-import type { Tarif, Transaksi, User } from "./types";
+import type { Tarif, TarifPending, Transaksi, User } from "./types";
 
 interface JasmedState {
   currentUser: User | null;
   users: User[];
   tarif: Tarif[];
   transaksi: Transaksi[];
+  pendingTarif: TarifPending[];
   ready: boolean;
 
   // internals
@@ -33,6 +34,10 @@ interface JasmedState {
   addTarif: (t: Omit<Tarif, "id">) => Promise<Tarif>;
   updateTarif: (id: string, t: Omit<Tarif, "id">) => Promise<void>;
   deleteTarif: (id: string) => Promise<void>;
+
+  requestTarifPending: (data: { nama: string; kategori?: string }) => Promise<void>;
+  approveTarifPending: (id: string, tarif: number) => Promise<void>;
+  rejectTarifPending: (id: string) => Promise<void>;
 
   addTransaksi: (t: Omit<Transaksi, "id" | "createdAt">) => Promise<void>;
   updateTransaksi: (id: string, t: Omit<Transaksi, "id" | "createdAt">) => Promise<void>;
@@ -137,6 +142,7 @@ export const useStore = create<JasmedState>()((set, get) => ({
   users: [],
   tarif: [],
   transaksi: [],
+  pendingTarif: [],
   ready: false,
 
   _setData: (p) => set(p),
@@ -144,7 +150,7 @@ export const useStore = create<JasmedState>()((set, get) => ({
   refresh: async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      set({ currentUser: null, users: [], tarif: [], transaksi: [], ready: true });
+      set({ currentUser: null, users: [], tarif: [], transaksi: [], pendingTarif: [], ready: true });
       return;
     }
     const { data: roles } = await supabase
@@ -156,15 +162,32 @@ export const useStore = create<JasmedState>()((set, get) => ({
     // Suntik email ke currentUser
     if (all.currentUser) all.currentUser.email = user.email ?? all.currentUser.email;
     if (all.currentUser) all.currentUser.username = user.email ?? all.currentUser.username;
-    set(all);
+
+    const { data: pendingRaw } = await supabase
+      .from("tarif_pending")
+      .select("id, nama, kategori, tarif, bidan_id, bidan_nama, status, created_at")
+      .order("created_at", { ascending: false });
+    const pendingTarif: TarifPending[] = (pendingRaw ?? []).map((r) => ({
+      id: r.id,
+      nama: r.nama,
+      kategori: r.kategori,
+      tarif: Number(r.tarif ?? 0),
+      bidanId: r.bidan_id,
+      bidanNama: r.bidan_nama,
+      status: r.status as TarifPending["status"],
+      createdAt: r.created_at,
+    }));
+
+    set({ ...all, pendingTarif });
   },
 
   login: (user) => set({ currentUser: user }),
 
   logout: async () => {
     await supabase.auth.signOut();
-    set({ currentUser: null, users: [], tarif: [], transaksi: [], ready: true });
+    set({ currentUser: null, users: [], tarif: [], transaksi: [], pendingTarif: [], ready: true });
   },
+
 
   addBidan: async ({ name, username, password }) => {
     await adminUpsertUser({
@@ -242,6 +265,45 @@ export const useStore = create<JasmedState>()((set, get) => ({
     if (error) throw error;
     set((s) => ({ tarif: s.tarif.filter((x) => x.id !== id) }));
   },
+
+  requestTarifPending: async ({ nama, kategori }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Tidak ada sesi");
+    const current = get().currentUser;
+    const { error } = await supabase.from("tarif_pending").insert({
+      nama: nama.trim(),
+      kategori: kategori?.trim() || "Lainnya",
+      tarif: 0,
+      bidan_id: user.id,
+      bidan_nama: current?.name ?? null,
+      status: "pending",
+    });
+    if (error) throw error;
+    await get().refresh();
+  },
+  approveTarifPending: async (id, tarif) => {
+    const pending = get().pendingTarif.find((p) => p.id === id);
+    if (!pending) throw new Error("Data tidak ditemukan");
+    const { error: insErr } = await supabase
+      .from("tarif")
+      .insert({ nama: pending.nama, kategori: pending.kategori, tarif });
+    if (insErr) throw insErr;
+    const { error: updErr } = await supabase
+      .from("tarif_pending")
+      .update({ status: "approved", tarif })
+      .eq("id", id);
+    if (updErr) throw updErr;
+    await get().refresh();
+  },
+  rejectTarifPending: async (id) => {
+    const { error } = await supabase
+      .from("tarif_pending")
+      .update({ status: "rejected" })
+      .eq("id", id);
+    if (error) throw error;
+    await get().refresh();
+  },
+
 
   addTransaksi: async (t) => {
     const { data, error } = await supabase

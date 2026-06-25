@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Check, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,14 @@ function TarifPage() {
   const addTarif = useStore((s) => s.addTarif);
   const updateTarif = useStore((s) => s.updateTarif);
   const deleteTarif = useStore((s) => s.deleteTarif);
+  const pendingTarif = useStore((s) => s.pendingTarif);
+  const approveTarifPending = useStore((s) => s.approveTarifPending);
+  const rejectTarifPending = useStore((s) => s.rejectTarifPending);
+
+  const pending = useMemo(
+    () => pendingTarif.filter((p) => p.status === "pending"),
+    [pendingTarif],
+  );
 
   const [search, setSearch] = useState("");
   const [kategori, setKategori] = useState("all");
@@ -82,6 +90,42 @@ function TarifPage() {
           />
         </Dialog>
       </header>
+
+      {pending.length > 0 && (
+        <section className="rounded-2xl border border-amber-300 bg-amber-50/60 p-4">
+          <div className="mb-3 flex items-center gap-2 text-amber-900">
+            <Clock className="h-4 w-4" />
+            <h2 className="text-sm font-semibold">
+              {pending.length} jasa medis menunggu approval
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {pending.map((p) => (
+              <PendingRow
+                key={p.id}
+                pending={p}
+                onApprove={async (tarif) => {
+                  try {
+                    await approveTarifPending(p.id, tarif);
+                    toast.success(`"${p.nama}" disetujui`);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Gagal approve");
+                  }
+                }}
+                onReject={async () => {
+                  try {
+                    await rejectTarifPending(p.id);
+                    toast.success(`"${p.nama}" ditolak`);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Gagal menolak");
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -227,3 +271,60 @@ function TarifForm({
     </DialogContent>
   );
 }
+
+function PendingRow({
+  pending,
+  onApprove,
+  onReject,
+}: {
+  pending: import("@/lib/types").TarifPending;
+  onApprove: (tarif: number) => void | Promise<void>;
+  onReject: () => void | Promise<void>;
+}) {
+  const [tarif, setTarif] = useState<number>(0);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{pending.nama}</p>
+        <p className="text-xs text-muted-foreground">
+          {pending.kategori} · diminta oleh {pending.bidanNama ?? "—"}
+        </p>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Tarif (Rp)</Label>
+        <Input
+          type="number"
+          min={0}
+          value={tarif}
+          onChange={(e) => setTarif(Number(e.target.value) || 0)}
+          className="h-9 w-36"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          disabled={busy || tarif <= 0}
+          onClick={async () => {
+            setBusy(true);
+            try { await onApprove(tarif); } finally { setBusy(false); }
+          }}
+        >
+          <Check className="mr-1 h-4 w-4" /> Approve
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try { await onReject(); } finally { setBusy(false); }
+          }}
+        >
+          <X className="mr-1 h-4 w-4" /> Tolak
+        </Button>
+      </div>
+    </div>
+  );
+}
+

@@ -31,7 +31,7 @@ function InputPage() {
   const users = useStore((s) => s.users);
   const tarifList = useStore((s) => s.tarif);
   const addTransaksi = useStore((s) => s.addTransaksi);
-  const addTarif = useStore((s) => s.addTarif);
+  const requestTarifPending = useStore((s) => s.requestTarifPending);
 
   const otherBidans = useMemo(
     () => users.filter((u) => u.role === "bidan" && u.id !== user?.id),
@@ -200,25 +200,21 @@ function InputPage() {
                           type="button"
                           onClick={async () => {
                             try {
-                              const created = await addTarif({
+                              await requestTarifPending({
                                 nama: search.trim(),
                                 kategori: "Lainnya",
-                                tarif: 0,
                               });
-                              setTarifId(created.id);
                               setOpen(false);
                               setSearch("");
-                              toast.success("Jasa medis baru ditambahkan", {
-                                description: "Tarif akan diisi oleh owner.",
-                              });
+                              toast.success("Jasa medis dikirim ke owner untuk approval tarif");
                             } catch (err) {
-                              toast.error(err instanceof Error ? err.message : "Gagal menambah jasa");
+                              toast.error(err instanceof Error ? err.message : "Gagal mengirim permintaan");
                             }
                           }}
                           className="flex w-full items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10"
                         >
                           <Plus className="h-4 w-4" />
-                          Tambah jasa baru: "{search.trim()}"
+                          Minta tambah jasa baru: "{search.trim()}"
                         </button>
                       </div>
                     )}

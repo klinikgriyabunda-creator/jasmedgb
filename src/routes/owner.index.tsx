@@ -13,7 +13,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { TrendingUp, Receipt, Crown, Users, AlertCircle } from "lucide-react";
+import { TrendingUp, Receipt, Crown, Users, AlertCircle, Bell } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
 import { formatRupiah, todayISO } from "@/lib/format";
 
@@ -26,6 +27,11 @@ const COLORS = ["#0D9488", "#10B981", "#0EA5E9", "#F59E0B", "#8B5CF6", "#EF4444"
 function OwnerDashboard() {
   const transaksi = useStore((s) => s.transaksi);
   const users = useStore((s) => s.users);
+  const pendingTarif = useStore((s) => s.pendingTarif);
+  const pendingCount = useMemo(
+    () => pendingTarif.filter((p) => p.status === "pending").length,
+    [pendingTarif],
+  );
 
   const data = useMemo(() => {
     const month = todayISO().slice(0, 7);
@@ -78,6 +84,24 @@ function OwnerDashboard() {
           {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
         </p>
       </header>
+
+      {pendingCount > 0 && (
+        <Link
+          to="/owner/tarif"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-primary transition hover:bg-primary/10"
+        >
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5" />
+            <p className="text-sm font-semibold">
+              🔔 {pendingCount} jasa medis baru menunggu approval
+            </p>
+          </div>
+          <span className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
+            Review
+          </span>
+        </Link>
+      )}
+
 
       {data.belumDiisi > 0 && (
         <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
