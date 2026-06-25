@@ -91,6 +91,42 @@ function TarifPage() {
         </Dialog>
       </header>
 
+      {pending.length > 0 && (
+        <section className="rounded-2xl border border-amber-300 bg-amber-50/60 p-4">
+          <div className="mb-3 flex items-center gap-2 text-amber-900">
+            <Clock className="h-4 w-4" />
+            <h2 className="text-sm font-semibold">
+              {pending.length} jasa medis menunggu approval
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {pending.map((p) => (
+              <PendingRow
+                key={p.id}
+                pending={p}
+                onApprove={async (tarif) => {
+                  try {
+                    await approveTarifPending(p.id, tarif);
+                    toast.success(`"${p.nama}" disetujui`);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Gagal approve");
+                  }
+                }}
+                onReject={async () => {
+                  try {
+                    await rejectTarifPending(p.id);
+                    toast.success(`"${p.nama}" ditolak`);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Gagal menolak");
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
