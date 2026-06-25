@@ -27,6 +27,11 @@ const COLORS = ["#0D9488", "#10B981", "#0EA5E9", "#F59E0B", "#8B5CF6", "#EF4444"
 function OwnerDashboard() {
   const transaksi = useStore((s) => s.transaksi);
   const users = useStore((s) => s.users);
+  const pendingTarif = useStore((s) => s.pendingTarif);
+  const pendingCount = useMemo(
+    () => pendingTarif.filter((p) => p.status === "pending").length,
+    [pendingTarif],
+  );
 
   const data = useMemo(() => {
     const month = todayISO().slice(0, 7);
