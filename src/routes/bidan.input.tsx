@@ -309,13 +309,14 @@ function InputPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
-          <Button type="submit" variant="outline" className="h-12 text-base">
-            Simpan
+          <Button type="submit" variant="outline" className="h-12 text-base" disabled={saving}>
+            {saving ? "Menyimpan..." : "Simpan"}
           </Button>
           <Button
             type="button"
             onClick={(e) => submit(e, true)}
             className="h-12 text-base"
+            disabled={saving}
           >
             <Check className="mr-1 h-4 w-4" /> Simpan & Lagi
           </Button>
