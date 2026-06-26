@@ -306,6 +306,7 @@ export const useStore = create<JasmedState>()((set, get) => ({
 
 
   addTransaksi: async (t) => {
+    const creatorId = get().currentUser?.id ?? t.bidanIds[0];
     const { data, error } = await supabase
       .from("transaksi")
       .insert({
@@ -313,12 +314,16 @@ export const useStore = create<JasmedState>()((set, get) => ({
         tarif_id: t.tarifId,
         jumlah: t.jumlah,
         tarif_nominal: t.tarifNominal,
+        created_by: creatorId,
       })
       .select("id")
       .single();
     if (error) throw error;
     const ids = t.bidanIds.map((bidan_id) => ({ transaksi_id: data.id, bidan_id }));
-    if (ids.length) await supabase.from("transaksi_bidan").insert(ids);
+    if (ids.length) {
+      const { error: bidanError } = await supabase.from("transaksi_bidan").insert(ids);
+      if (bidanError) throw bidanError;
+    }
     await get().refresh();
   },
   updateTransaksi: async (id, t) => {
