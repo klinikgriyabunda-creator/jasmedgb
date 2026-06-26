@@ -318,7 +318,10 @@ export const useStore = create<JasmedState>()((set, get) => ({
       .single();
     if (error) throw error;
     const ids = t.bidanIds.map((bidan_id) => ({ transaksi_id: data.id, bidan_id }));
-    if (ids.length) await supabase.from("transaksi_bidan").insert(ids);
+    if (ids.length) {
+      const { error: bidanError } = await supabase.from("transaksi_bidan").insert(ids);
+      if (bidanError) throw bidanError;
+    }
     await get().refresh();
   },
   updateTransaksi: async (id, t) => {
