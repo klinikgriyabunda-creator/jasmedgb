@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Search, X, UserPlus, Plus } from "lucide-react";
+import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,15 @@ export const Route = createFileRoute("/bidan/input")({
   component: InputPage,
 });
 
+type TindakanItem = {
+  key: string;
+  tarifId: string;
+  jasaNama: string;
+  jumlah: number;
+  partnerId: string | null;
+  partnerName: string | null;
+};
+
 function InputPage() {
   const navigate = useNavigate();
   const user = useStore((s) => s.currentUser);
@@ -46,58 +55,99 @@ function InputPage() {
   const [search, setSearch] = useState("");
   const [partnerOn, setPartnerOn] = useState(false);
   const [partnerId, setPartnerId] = useState("");
+  const [tindakanList, setTindakanList] = useState<TindakanItem[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const tarif = useMemo(
     () => tarifList.find((t) => t.id === tarifId),
     [tarifList, tarifId],
   );
 
-  const reset = () => {
-    setPasien("");
+  const resetTindakanFields = () => {
     setTarifId("");
     setJumlah(1);
     setPartnerOn(false);
     setPartnerId("");
   };
 
-  const [saving, setSaving] = useState(false);
+  const resetAll = () => {
+    setPasien("");
+    resetTindakanFields();
+    setTindakanList([]);
+  };
 
-  const submit = async (e: React.FormEvent, again: boolean) => {
-    e.preventDefault();
-    if (!user) return;
+  const addToCart = () => {
     if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
     if (!tarif) return toast.error("Pilih jasa medis dulu");
     if (jumlah < 1) return toast.error("Jumlah minimal 1");
     if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
 
-    const bidanIds = [user.id];
-    const bidanNamas = [user.name];
-    if (partnerOn && partnerId) {
-      const partner = otherBidans.find((u) => u.id === partnerId);
-      if (partner) {
-        bidanIds.push(partner.id);
-        bidanNamas.push(partner.name);
-      }
+    const partner = partnerOn && partnerId ? otherBidans.find((u) => u.id === partnerId) : null;
+    setTindakanList((prev) => [
+      ...prev,
+      {
+        key: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        tarifId: tarif.id,
+        jasaNama: tarif.nama,
+        jumlah,
+        partnerId: partner?.id ?? null,
+        partnerName: partner?.name ?? null,
+      },
+    ]);
+    resetTindakanFields();
+    toast.success("Tindakan ditambahkan ke list");
+  };
+
+  const removeFromCart = (key: string) => {
+    setTindakanList((prev) => prev.filter((x) => x.key !== key));
+  };
+
+  const saveAll = async () => {
+    if (!user) return;
+    if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
+
+    // Build items: cart or single fallback
+    let items: TindakanItem[] = tindakanList;
+    if (items.length === 0) {
+      if (!tarif) return toast.error("Tambahkan minimal 1 tindakan");
+      if (jumlah < 1) return toast.error("Jumlah minimal 1");
+      if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
+      const partner = partnerOn && partnerId ? otherBidans.find((u) => u.id === partnerId) : null;
+      items = [{
+        key: "single",
+        tarifId: tarif.id,
+        jasaNama: tarif.nama,
+        jumlah,
+        partnerId: partner?.id ?? null,
+        partnerName: partner?.name ?? null,
+      }];
     }
 
     setSaving(true);
     try {
-      await addTransaksi({
-        tanggal,
-        bidanIds,
-        bidanNamas,
-        pasien: pasien.trim(),
-        tarifId: tarif.id,
-        tarifNama: tarif.nama,
-        tarifNominal: tarif.tarif, // trigger DB fill_tarif_nominal akan isi otomatis bila 0
-        jumlah,
-        subtotal: tarif.tarif * jumlah,
-      });
-      toast.success("Tindakan berhasil disimpan", {
-        description: `${tarif.nama} · ${jumlah}x`,
-      });
-      if (again) reset();
-      else navigate({ to: "/bidan/riwayat" });
+      for (const item of items) {
+        const bidanIds = [user.id];
+        const bidanNamas = [user.name];
+        if (item.partnerId && item.partnerName) {
+          bidanIds.push(item.partnerId);
+          bidanNamas.push(item.partnerName);
+        }
+        const t = tarifList.find((x) => x.id === item.tarifId);
+        await addTransaksi({
+          tanggal,
+          bidanIds,
+          bidanNamas,
+          pasien: pasien.trim(),
+          tarifId: item.tarifId,
+          tarifNama: item.jasaNama,
+          tarifNominal: t?.tarif ?? 0,
+          jumlah: item.jumlah,
+          subtotal: (t?.tarif ?? 0) * item.jumlah,
+        });
+      }
+      toast.success(`${items.length} tindakan berhasil disimpan untuk ${pasien.trim()}`);
+      resetAll();
+      navigate({ to: "/bidan/riwayat" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error("Gagal menyimpan", { description: msg });
@@ -107,7 +157,7 @@ function InputPage() {
   };
 
   return (
-    <div className="px-4 pt-6">
+    <div className="px-4 pt-6 pb-8">
       <header className="mb-5 flex items-center gap-3">
         <button
           onClick={() => navigate({ to: "/bidan" })}
@@ -121,7 +171,7 @@ function InputPage() {
         </div>
       </header>
 
-      <form onSubmit={(e) => submit(e, false)} className="space-y-5">
+      <div className="space-y-5">
         <div className="space-y-2">
           <Label className="text-sm">Tanggal</Label>
           <Input
@@ -141,6 +191,37 @@ function InputPage() {
             className="h-12 text-base"
           />
         </div>
+
+        {tindakanList.length > 0 && (
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">
+              Keranjang Tindakan ({tindakanList.length})
+            </p>
+            <ul className="space-y-2">
+              {tindakanList.map((item) => (
+                <li
+                  key={item.key}
+                  className="flex items-center justify-between gap-2 rounded-lg bg-card p-3 shadow-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.jasaNama}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.jumlah}x {item.partnerName ? `· Tim: ${item.partnerName}` : "· Solo"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeFromCart(item.key)}
+                    className="grid h-8 w-8 place-items-center rounded-md text-destructive hover:bg-destructive/10"
+                    aria-label="Hapus"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label className="text-sm">Jenis Jasa Medis</Label>
@@ -259,9 +340,6 @@ function InputPage() {
               </SelectContent>
             </Select>
           )}
-          <p className="text-xs text-muted-foreground">
-            Dalam satu shift, jika tindakan dilakukan bersama, tambahkan bidan partner Anda.
-          </p>
         </div>
 
         <div className="space-y-2">
@@ -292,32 +370,33 @@ function InputPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-dashed bg-card/60 p-5 text-center">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Ringkasan
-          </p>
-          <p className="mt-1 text-lg font-bold text-foreground">
-            {tarif ? tarif.nama : "—"}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {jumlah} tindakan · {partnerOn && partnerId ? "Tim 2 Bidan" : "Solo"}
-          </p>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addToCart}
+          className="h-12 w-full border-dashed text-base"
+          disabled={saving}
+        >
+          <Plus className="mr-1 h-4 w-4" /> Tambah Tindakan ke List
+        </Button>
 
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <Button type="submit" variant="outline" className="h-12 text-base" disabled={saving}>
-            {saving ? "Menyimpan..." : "Simpan"}
-          </Button>
-          <Button
-            type="button"
-            onClick={(e) => submit(e, true)}
-            className="h-12 text-base"
-            disabled={saving}
-          >
-            <Check className="mr-1 h-4 w-4" /> Simpan & Lagi
-          </Button>
-        </div>
-      </form>
+        <Button
+          type="button"
+          onClick={saveAll}
+          className={cn(
+            "h-12 w-full text-base",
+            tindakanList.length === 0 && !tarif && "opacity-50",
+          )}
+          disabled={saving || (tindakanList.length === 0 && !tarif)}
+        >
+          <Check className="mr-1 h-4 w-4" />
+          {saving
+            ? "Menyimpan..."
+            : tindakanList.length > 0
+              ? `Simpan Semua (${tindakanList.length})`
+              : "Simpan"}
+        </Button>
+      </div>
     </div>
   );
 }
