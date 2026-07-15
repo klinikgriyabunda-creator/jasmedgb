@@ -156,7 +156,6 @@ function RekapPage() {
                 <ul className="divide-y">
                   {b.items.map((t) => {
                     const isTim = t.bidanIds.length > 1;
-                    const share = isTim ? t.subtotal / t.bidanIds.length : t.subtotal;
                     return (
                       <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
                         <div className="min-w-0">
@@ -170,18 +169,12 @@ function RekapPage() {
                           </div>
                           <p className="truncate text-xs text-muted-foreground">
                             {formatTanggal(t.tanggal)} · {t.pasien} · {t.jumlah}x
-                            {isTim && ` · dibagi ${t.bidanIds.length}`}
                           </p>
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="text-sm font-semibold text-primary">
-                            {formatRupiah(share)}
+                            {formatRupiah(t.subtotal)}
                           </p>
-                          {isTim && (
-                            <p className="text-[10px] text-muted-foreground">
-                              dari {formatRupiah(t.subtotal)}
-                            </p>
-                          )}
                         </div>
                       </li>
                     );
