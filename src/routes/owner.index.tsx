@@ -36,7 +36,11 @@ function OwnerDashboard() {
   const data = useMemo(() => {
     const month = todayISO().slice(0, 7);
     const bulanIni = transaksi.filter((t) => t.tanggal.startsWith(month));
-    const totalBulan = bulanIni.reduce((s, t) => s + t.subtotal, 0);
+    // Tarif per orang = tarif penuh; total keseluruhan = jumlah semua bagian bidan
+    const totalBulan = bulanIni.reduce(
+      (s, t) => s + t.subtotal * Math.max(t.bidanIds.length, 1),
+      0,
+    );
     const belumDiisi = transaksi.filter((t) => t.tarifNominal === 0).length;
 
     const perBidan = new Map<string, { nama: string; total: number; count: number }>();
@@ -44,13 +48,12 @@ function OwnerDashboard() {
       perBidan.set(u.id, { nama: u.name.replace("Bidan ", ""), total: 0, count: 0 }),
     );
     bulanIni.forEach((t) => {
-      const share = t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0;
-      const shareCount = t.bidanIds.length ? t.jumlah / t.bidanIds.length : 0;
+      // Setiap bidan mendapat tarif penuh, tidak dibagi
       t.bidanIds.forEach((bid) => {
         const e = perBidan.get(bid);
         if (e) {
-          e.total += share;
-          e.count += shareCount;
+          e.total += t.subtotal;
+          e.count += t.jumlah;
         }
       });
     });

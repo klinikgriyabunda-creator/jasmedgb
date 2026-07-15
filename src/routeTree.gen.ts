@@ -20,7 +20,6 @@ import { Route as OwnerTarifRouteImport } from './routes/owner.tarif'
 import { Route as OwnerRekapRouteImport } from './routes/owner.rekap'
 import { Route as OwnerBidanRouteImport } from './routes/owner.bidan'
 import { Route as OwnerAkunRouteImport } from './routes/owner.akun'
-import { Route as BidanRiwayatRouteImport } from './routes/bidan.riwayat'
 import { Route as BidanProfilRouteImport } from './routes/bidan.profil'
 import { Route as BidanInputRouteImport } from './routes/bidan.input'
 
@@ -79,11 +78,6 @@ const OwnerAkunRoute = OwnerAkunRouteImport.update({
   path: '/akun',
   getParentRoute: () => OwnerRoute,
 } as any)
-const BidanRiwayatRoute = BidanRiwayatRouteImport.update({
-  id: '/riwayat',
-  path: '/riwayat',
-  getParentRoute: () => BidanRoute,
-} as any)
 const BidanProfilRoute = BidanProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -102,7 +96,6 @@ export interface FileRoutesByFullPath {
   '/owner': typeof OwnerRouteWithChildren
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
-  '/bidan/riwayat': typeof BidanRiwayatRoute
   '/owner/akun': typeof OwnerAkunRoute
   '/owner/bidan': typeof OwnerBidanRoute
   '/owner/rekap': typeof OwnerRekapRoute
@@ -116,7 +109,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
-  '/bidan/riwayat': typeof BidanRiwayatRoute
   '/owner/akun': typeof OwnerAkunRoute
   '/owner/bidan': typeof OwnerBidanRoute
   '/owner/rekap': typeof OwnerRekapRoute
@@ -133,7 +125,6 @@ export interface FileRoutesById {
   '/owner': typeof OwnerRouteWithChildren
   '/bidan/input': typeof BidanInputRoute
   '/bidan/profil': typeof BidanProfilRoute
-  '/bidan/riwayat': typeof BidanRiwayatRoute
   '/owner/akun': typeof OwnerAkunRoute
   '/owner/bidan': typeof OwnerBidanRoute
   '/owner/rekap': typeof OwnerRekapRoute
@@ -151,7 +142,6 @@ export interface FileRouteTypes {
     | '/owner'
     | '/bidan/input'
     | '/bidan/profil'
-    | '/bidan/riwayat'
     | '/owner/akun'
     | '/owner/bidan'
     | '/owner/rekap'
@@ -165,7 +155,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/bidan/input'
     | '/bidan/profil'
-    | '/bidan/riwayat'
     | '/owner/akun'
     | '/owner/bidan'
     | '/owner/rekap'
@@ -181,7 +170,6 @@ export interface FileRouteTypes {
     | '/owner'
     | '/bidan/input'
     | '/bidan/profil'
-    | '/bidan/riwayat'
     | '/owner/akun'
     | '/owner/bidan'
     | '/owner/rekap'
@@ -277,13 +265,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OwnerAkunRouteImport
       parentRoute: typeof OwnerRoute
     }
-    '/bidan/riwayat': {
-      id: '/bidan/riwayat'
-      path: '/riwayat'
-      fullPath: '/bidan/riwayat'
-      preLoaderRoute: typeof BidanRiwayatRouteImport
-      parentRoute: typeof BidanRoute
-    }
     '/bidan/profil': {
       id: '/bidan/profil'
       path: '/profil'
@@ -304,14 +285,12 @@ declare module '@tanstack/react-router' {
 interface BidanRouteChildren {
   BidanInputRoute: typeof BidanInputRoute
   BidanProfilRoute: typeof BidanProfilRoute
-  BidanRiwayatRoute: typeof BidanRiwayatRoute
   BidanIndexRoute: typeof BidanIndexRoute
 }
 
 const BidanRouteChildren: BidanRouteChildren = {
   BidanInputRoute: BidanInputRoute,
   BidanProfilRoute: BidanProfilRoute,
-  BidanRiwayatRoute: BidanRiwayatRoute,
   BidanIndexRoute: BidanIndexRoute,
 }
 

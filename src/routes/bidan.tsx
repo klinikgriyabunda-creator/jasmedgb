@@ -6,7 +6,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, PlusCircle, History, User } from "lucide-react";
+import { Home, PlusCircle, User } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +16,7 @@ export const Route = createFileRoute("/bidan")({
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/bidan", label: "Beranda", icon: Home, exact: true },
-  { to: "/bidan/input", label: "Input", icon: PlusCircle },
-  { to: "/bidan/riwayat", label: "Riwayat", icon: History },
+  { to: "/bidan/input", label: "Tindakan", icon: PlusCircle },
   { to: "/bidan/profil", label: "Profil", icon: User },
 ];
 
@@ -41,7 +40,7 @@ function BidanLayout() {
         <Outlet />
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-xl grid-cols-4">
+        <div className="mx-auto grid max-w-xl grid-cols-3">
           {NAV.map((item) => {
             const active = item.exact
               ? pathname === item.to

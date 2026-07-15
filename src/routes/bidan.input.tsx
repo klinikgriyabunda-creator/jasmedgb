@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2, Users, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/lib/store";
-import { todayISO } from "@/lib/format";
+import { formatTanggal, todayISO } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/bidan/input")({
@@ -30,8 +30,6 @@ type TindakanItem = {
   tarifId: string;
   jasaNama: string;
   jumlah: number;
-  partnerId: string | null;
-  partnerName: string | null;
 };
 
 function InputPage() {
@@ -39,6 +37,7 @@ function InputPage() {
   const user = useStore((s) => s.currentUser);
   const users = useStore((s) => s.users);
   const tarifList = useStore((s) => s.tarif);
+  const transaksi = useStore((s) => s.transaksi);
   const addTransaksi = useStore((s) => s.addTransaksi);
   const requestTarifPending = useStore((s) => s.requestTarifPending);
 
@@ -63,11 +62,22 @@ function InputPage() {
     [tarifList, tarifId],
   );
 
+  const partnerName = useMemo(
+    () => (partnerOn && partnerId ? otherBidans.find((u) => u.id === partnerId)?.name ?? null : null),
+    [partnerOn, partnerId, otherBidans],
+  );
+
+  const riwayatHariIni = useMemo(
+    () =>
+      transaksi
+        .filter((t) => user && t.bidanIds.includes(user.id) && t.tanggal === tanggal)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [transaksi, user, tanggal],
+  );
+
   const resetTindakanFields = () => {
     setTarifId("");
     setJumlah(1);
-    setPartnerOn(false);
-    setPartnerId("");
   };
 
   const resetAll = () => {
@@ -80,9 +90,7 @@ function InputPage() {
     if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
     if (!tarif) return toast.error("Pilih jasa medis dulu");
     if (jumlah < 1) return toast.error("Jumlah minimal 1");
-    if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
 
-    const partner = partnerOn && partnerId ? otherBidans.find((u) => u.id === partnerId) : null;
     setTindakanList((prev) => [
       ...prev,
       {
@@ -90,8 +98,6 @@ function InputPage() {
         tarifId: tarif.id,
         jasaNama: tarif.nama,
         jumlah,
-        partnerId: partner?.id ?? null,
-        partnerName: partner?.name ?? null,
       },
     ]);
     resetTindakanFields();
@@ -105,33 +111,25 @@ function InputPage() {
   const saveAll = async () => {
     if (!user) return;
     if (!pasien.trim()) return toast.error("Nama pasien wajib diisi");
+    if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
 
-    // Build items: cart or single fallback
     let items: TindakanItem[] = tindakanList;
     if (items.length === 0) {
       if (!tarif) return toast.error("Tambahkan minimal 1 tindakan");
       if (jumlah < 1) return toast.error("Jumlah minimal 1");
-      if (partnerOn && !partnerId) return toast.error("Pilih bidan partner atau matikan opsi tim");
-      const partner = partnerOn && partnerId ? otherBidans.find((u) => u.id === partnerId) : null;
-      items = [{
-        key: "single",
-        tarifId: tarif.id,
-        jasaNama: tarif.nama,
-        jumlah,
-        partnerId: partner?.id ?? null,
-        partnerName: partner?.name ?? null,
-      }];
+      items = [{ key: "single", tarifId: tarif.id, jasaNama: tarif.nama, jumlah }];
+    }
+
+    const bidanIds = [user.id];
+    const bidanNamas = [user.name];
+    if (partnerOn && partnerId && partnerName) {
+      bidanIds.push(partnerId);
+      bidanNamas.push(partnerName);
     }
 
     setSaving(true);
     try {
       for (const item of items) {
-        const bidanIds = [user.id];
-        const bidanNamas = [user.name];
-        if (item.partnerId && item.partnerName) {
-          bidanIds.push(item.partnerId);
-          bidanNamas.push(item.partnerName);
-        }
         const t = tarifList.find((x) => x.id === item.tarifId);
         await addTransaksi({
           tanggal,
@@ -147,7 +145,6 @@ function InputPage() {
       }
       toast.success(`${items.length} tindakan berhasil disimpan untuk ${pasien.trim()}`);
       resetAll();
-      navigate({ to: "/bidan/riwayat" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error("Gagal menyimpan", { description: msg });
@@ -166,48 +163,92 @@ function InputPage() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-xl font-bold">Input Tindakan</h1>
-          <p className="text-xs text-muted-foreground">Catat jasa medis Anda</p>
+          <h1 className="text-xl font-bold">Input & Riwayat</h1>
+          <p className="text-xs text-muted-foreground">Catat & lihat tindakan Anda</p>
         </div>
       </header>
 
-      <div className="space-y-5">
-        <div className="space-y-2">
-          <Label className="text-sm">Tanggal</Label>
-          <Input
-            type="date"
-            value={tanggal}
-            onChange={(e) => setTanggal(e.target.value)}
-            className="h-12 text-base"
-          />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tanggal</Label>
+            <Input
+              type="date"
+              value={tanggal}
+              onChange={(e) => setTanggal(e.target.value)}
+              className="h-11 text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Nama Pasien</Label>
+            <Input
+              value={pasien}
+              onChange={(e) => setPasien(e.target.value)}
+              placeholder="Mis. Ibu Sari"
+              className="h-11 text-sm"
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-sm">Nama Pasien</Label>
-          <Input
-            value={pasien}
-            onChange={(e) => setPasien(e.target.value)}
-            placeholder="Mis. Ibu Sari"
-            className="h-12 text-base"
-          />
+        {/* Partner sekali di atas */}
+        <div className="rounded-xl border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <Label className="text-xs font-semibold">
+              Bidan Partner {partnerOn ? "" : <span className="font-normal text-muted-foreground">(opsional)</span>}
+            </Label>
+            {partnerOn ? (
+              <button
+                type="button"
+                onClick={() => { setPartnerOn(false); setPartnerId(""); }}
+                className="flex items-center gap-1 text-xs text-muted-foreground"
+              >
+                <X className="h-3 w-3" /> Hapus
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPartnerOn(true)}
+                className="flex items-center gap-1 text-xs font-medium text-primary"
+              >
+                <UserPlus className="h-3 w-3" /> Pilih partner
+              </button>
+            )}
+          </div>
+          {partnerOn ? (
+            <Select value={partnerId} onValueChange={setPartnerId}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Pilih bidan partner shift" />
+              </SelectTrigger>
+              <SelectContent>
+                {otherBidans.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Solo shift — semua tindakan atas nama Anda saja.
+            </p>
+          )}
         </div>
 
         {tindakanList.length > 0 && (
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">
-              Keranjang Tindakan ({tindakanList.length})
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary">
+              Keranjang ({tindakanList.length})
+              {partnerName && <span className="ml-2 font-normal normal-case text-muted-foreground">bersama {partnerName}</span>}
             </p>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {tindakanList.map((item) => (
                 <li
                   key={item.key}
-                  className="flex items-center justify-between gap-2 rounded-lg bg-card p-3 shadow-sm"
+                  className="flex items-center justify-between gap-2 rounded-lg bg-card p-2.5 shadow-sm"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{item.jasaNama}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.jumlah}x {item.partnerName ? `· Tim: ${item.partnerName}` : "· Solo"}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{item.jumlah}x</p>
                   </div>
                   <button
                     type="button"
@@ -223,14 +264,14 @@ function InputPage() {
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label className="text-sm">Jenis Jasa Medis</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Jenis Jasa Medis</Label>
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 className={cn(
-                  "flex h-12 w-full items-center justify-between rounded-md border bg-background px-3 text-left text-base",
+                  "flex h-11 w-full items-center justify-between rounded-md border bg-background px-3 text-left text-sm",
                   !tarif && "text-muted-foreground",
                 )}
               >
@@ -305,51 +346,14 @@ function InputPage() {
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Partner Shift (opsional)</Label>
-            {partnerOn ? (
-              <button
-                type="button"
-                onClick={() => { setPartnerOn(false); setPartnerId(""); }}
-                className="flex items-center gap-1 text-xs text-muted-foreground"
-              >
-                <X className="h-3 w-3" /> Hapus partner
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setPartnerOn(true)}
-                className="flex items-center gap-1 text-xs font-medium text-primary"
-              >
-                <UserPlus className="h-3 w-3" /> Tambah bidan kedua
-              </button>
-            )}
-          </div>
-          {partnerOn && (
-            <Select value={partnerId} onValueChange={setPartnerId}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Pilih bidan partner shift" />
-              </SelectTrigger>
-              <SelectContent>
-                {otherBidans.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm">Jumlah Tindakan</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Jumlah Tindakan</Label>
           <Input
             type="number"
             min={1}
             value={jumlah}
             onChange={(e) => setJumlah(Math.max(1, Number(e.target.value) || 1))}
-            className="h-12 text-base"
+            className="h-11 text-sm"
           />
           <div className="flex gap-2 pt-1">
             {[1, 2, 3, 5, 10].map((n) => (
@@ -358,7 +362,7 @@ function InputPage() {
                 type="button"
                 onClick={() => setJumlah(n)}
                 className={cn(
-                  "h-10 flex-1 rounded-lg border text-sm font-semibold transition-colors",
+                  "h-9 flex-1 rounded-lg border text-sm font-semibold transition-colors",
                   jumlah === n
                     ? "border-primary bg-primary text-primary-foreground"
                     : "bg-card hover:bg-accent",
@@ -370,32 +374,79 @@ function InputPage() {
           </div>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addToCart}
-          className="h-12 w-full border-dashed text-base"
-          disabled={saving}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Tambah Tindakan ke List
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addToCart}
+            className="h-11 border-dashed text-sm"
+            disabled={saving}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Tambah ke List
+          </Button>
+          <Button
+            type="button"
+            onClick={saveAll}
+            className={cn(
+              "h-11 text-sm",
+              tindakanList.length === 0 && !tarif && "opacity-50",
+            )}
+            disabled={saving || (tindakanList.length === 0 && !tarif)}
+          >
+            <Check className="mr-1 h-4 w-4" />
+            {saving
+              ? "Menyimpan..."
+              : tindakanList.length > 0
+                ? `Simpan (${tindakanList.length})`
+                : "Simpan"}
+          </Button>
+        </div>
+      </div>
 
-        <Button
-          type="button"
-          onClick={saveAll}
-          className={cn(
-            "h-12 w-full text-base",
-            tindakanList.length === 0 && !tarif && "opacity-50",
-          )}
-          disabled={saving || (tindakanList.length === 0 && !tarif)}
-        >
-          <Check className="mr-1 h-4 w-4" />
-          {saving
-            ? "Menyimpan..."
-            : tindakanList.length > 0
-              ? `Simpan Semua (${tindakanList.length})`
-              : "Simpan"}
-        </Button>
+      {/* Riwayat tanggal terpilih */}
+      <div className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">
+              Riwayat {formatTanggal(tanggal)}
+            </h2>
+          </div>
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+            {riwayatHariIni.length} catatan
+          </span>
+        </div>
+
+        {riwayatHariIni.length === 0 ? (
+          <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
+            Belum ada tindakan pada tanggal ini.
+          </div>
+        ) : (
+          <ul className="space-y-2 pb-6">
+            {riwayatHariIni.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium">{t.tarifNama}</p>
+                    {t.bidanNamas.length > 1 && (
+                      <span className="flex items-center gap-1 rounded-md bg-secondary/15 px-1.5 py-0.5 text-[10px] font-semibold text-secondary">
+                        <Users className="h-3 w-3" /> Tim
+                      </span>
+                    )}
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {t.pasien} · {t.jumlah}x
+                    {t.bidanNamas.length > 1 &&
+                      ` · bersama ${t.bidanNamas.filter((n) => n !== user?.name).join(", ")}`}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

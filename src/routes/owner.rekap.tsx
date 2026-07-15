@@ -33,13 +33,12 @@ function RekapPage() {
         const items = filtered
           .filter((t) => t.bidanIds.includes(b.id))
           .sort((a, b2) => b2.tanggal.localeCompare(a.tanggal));
-        const share = (t: (typeof items)[number]) =>
-          t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0;
+        // Setiap bidan menerima tarif penuh per tindakan (tidak dibagi partner)
         return {
           bidanId: b.id,
           nama: b.name,
           items,
-          total: items.reduce((s, t) => s + share(t), 0),
+          total: items.reduce((s, t) => s + t.subtotal, 0),
           tindakan: items.reduce((s, t) => s + t.jumlah, 0),
         };
       })
@@ -78,7 +77,7 @@ function RekapPage() {
         Tarif: t.tarifNominal,
         Jumlah: t.jumlah,
         Subtotal: t.subtotal,
-        "Bagian Bidan": Math.round(t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0),
+        "Bagian Bidan": t.subtotal,
       })),
     );
     const wsDetail = XLSX.utils.json_to_sheet(detail);
@@ -98,7 +97,7 @@ function RekapPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Rekap per Bidan</h1>
           <p className="text-sm text-muted-foreground">
-            Jasmed dari shift tim dibagi rata antar bidan
+            Setiap bidan menerima tarif penuh (tim shift tidak dibagi)
           </p>
         </div>
         <Button onClick={exportRekap}>
@@ -157,7 +156,6 @@ function RekapPage() {
                 <ul className="divide-y">
                   {b.items.map((t) => {
                     const isTim = t.bidanIds.length > 1;
-                    const share = isTim ? t.subtotal / t.bidanIds.length : t.subtotal;
                     return (
                       <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
                         <div className="min-w-0">
@@ -171,18 +169,12 @@ function RekapPage() {
                           </div>
                           <p className="truncate text-xs text-muted-foreground">
                             {formatTanggal(t.tanggal)} · {t.pasien} · {t.jumlah}x
-                            {isTim && ` · dibagi ${t.bidanIds.length}`}
                           </p>
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="text-sm font-semibold text-primary">
-                            {formatRupiah(share)}
+                            {formatRupiah(t.subtotal)}
                           </p>
-                          {isTim && (
-                            <p className="text-[10px] text-muted-foreground">
-                              dari {formatRupiah(t.subtotal)}
-                            </p>
-                          )}
                         </div>
                       </li>
                     );
