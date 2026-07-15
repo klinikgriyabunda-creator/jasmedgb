@@ -16,8 +16,7 @@ export const Route = createFileRoute("/bidan")({
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/bidan", label: "Beranda", icon: Home, exact: true },
-  { to: "/bidan/input", label: "Input", icon: PlusCircle },
-  { to: "/bidan/riwayat", label: "Riwayat", icon: History },
+  { to: "/bidan/input", label: "Tindakan", icon: PlusCircle },
   { to: "/bidan/profil", label: "Profil", icon: User },
 ];
 
