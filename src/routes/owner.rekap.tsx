@@ -77,7 +77,7 @@ function RekapPage() {
         Tarif: t.tarifNominal,
         Jumlah: t.jumlah,
         Subtotal: t.subtotal,
-        "Bagian Bidan": Math.round(t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0),
+        "Bagian Bidan": t.subtotal,
       })),
     );
     const wsDetail = XLSX.utils.json_to_sheet(detail);
