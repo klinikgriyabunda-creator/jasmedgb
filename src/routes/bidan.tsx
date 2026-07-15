@@ -40,7 +40,7 @@ function BidanLayout() {
         <Outlet />
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-xl grid-cols-4">
+        <div className="mx-auto grid max-w-xl grid-cols-3">
           {NAV.map((item) => {
             const active = item.exact
               ? pathname === item.to
