@@ -33,13 +33,12 @@ function RekapPage() {
         const items = filtered
           .filter((t) => t.bidanIds.includes(b.id))
           .sort((a, b2) => b2.tanggal.localeCompare(a.tanggal));
-        const share = (t: (typeof items)[number]) =>
-          t.bidanIds.length ? t.subtotal / t.bidanIds.length : 0;
+        // Setiap bidan menerima tarif penuh per tindakan (tidak dibagi partner)
         return {
           bidanId: b.id,
           nama: b.name,
           items,
-          total: items.reduce((s, t) => s + share(t), 0),
+          total: items.reduce((s, t) => s + t.subtotal, 0),
           tindakan: items.reduce((s, t) => s + t.jumlah, 0),
         };
       })
