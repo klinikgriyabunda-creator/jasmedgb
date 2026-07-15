@@ -97,7 +97,7 @@ function RekapPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Rekap per Bidan</h1>
           <p className="text-sm text-muted-foreground">
-            Jasmed dari shift tim dibagi rata antar bidan
+            Setiap bidan menerima tarif penuh (tim shift tidak dibagi)
           </p>
         </div>
         <Button onClick={exportRekap}>
