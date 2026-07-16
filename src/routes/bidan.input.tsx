@@ -67,13 +67,72 @@ function InputPage() {
     [partnerOn, partnerId, otherBidans],
   );
 
-  const riwayatHariIni = useMemo(
-    () =>
-      transaksi
-        .filter((t) => user && t.bidanIds.includes(user.id) && t.tanggal === tanggal)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [transaksi, user, tanggal],
-  );
+  const [filterMode, setFilterMode] = useState<"tanggal" | "bulan">("tanggal");
+  const [filterTanggal, setFilterTanggal] = useState(todayISO());
+  const [filterBulan, setFilterBulan] = useState(todayISO().slice(0, 7));
+
+  const riwayatFiltered = useMemo(() => {
+    if (!user) return [];
+    return transaksi
+      .filter((t) => t.bidanIds.includes(user.id))
+      .filter((t) =>
+        filterMode === "tanggal"
+          ? t.tanggal === filterTanggal
+          : t.tanggal.startsWith(filterBulan),
+      )
+      .sort((a, b) =>
+        a.tanggal === b.tanggal
+          ? a.createdAt.localeCompare(b.createdAt)
+          : b.tanggal.localeCompare(a.tanggal),
+      );
+  }, [transaksi, user, filterMode, filterTanggal, filterBulan]);
+
+  const totalCatatan = riwayatFiltered.length;
+  const totalTindakan = riwayatFiltered.reduce((sum, t) => sum + t.jumlah, 0);
+
+  // Group by tanggal + pasien for spreadsheet-style display
+  const riwayatRows = useMemo(() => {
+    const rows: {
+      id: string;
+      showTanggal: boolean;
+      showPasien: boolean;
+      showPartner: boolean;
+      tanggal: string;
+      pasien: string;
+      jasa: string;
+      jumlah: number;
+      partner: string;
+      groupStart: boolean;
+    }[] = [];
+    let lastTanggal = "";
+    let lastPasienKey = "";
+    let lastPartner = "";
+    for (const t of riwayatFiltered) {
+      const partner =
+        t.bidanNamas.filter((n) => n !== user?.name).join(", ") || "-";
+      const showTanggal = t.tanggal !== lastTanggal;
+      const pasienKey = `${t.tanggal}::${t.pasien}`;
+      const showPasien = pasienKey !== lastPasienKey;
+      const partnerKey = `${t.tanggal}::${partner}`;
+      const showPartner = showTanggal || partnerKey !== lastPartner;
+      rows.push({
+        id: t.id,
+        showTanggal,
+        showPasien,
+        showPartner,
+        tanggal: t.tanggal,
+        pasien: t.pasien,
+        jasa: t.tarifNama,
+        jumlah: t.jumlah,
+        partner,
+        groupStart: showTanggal,
+      });
+      lastTanggal = t.tanggal;
+      lastPasienKey = pasienKey;
+      lastPartner = partnerKey;
+    }
+    return rows;
+  }, [riwayatFiltered, user]);
 
   const resetTindakanFields = () => {
     setTarifId("");
