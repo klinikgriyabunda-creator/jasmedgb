@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
