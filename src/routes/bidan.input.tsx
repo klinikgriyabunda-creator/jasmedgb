@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Check, Search, X, UserPlus, Plus, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,13 +67,72 @@ function InputPage() {
     [partnerOn, partnerId, otherBidans],
   );
 
-  const riwayatHariIni = useMemo(
-    () =>
-      transaksi
-        .filter((t) => user && t.bidanIds.includes(user.id) && t.tanggal === tanggal)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [transaksi, user, tanggal],
-  );
+  const [filterMode, setFilterMode] = useState<"tanggal" | "bulan">("tanggal");
+  const [filterTanggal, setFilterTanggal] = useState(todayISO());
+  const [filterBulan, setFilterBulan] = useState(todayISO().slice(0, 7));
+
+  const riwayatFiltered = useMemo(() => {
+    if (!user) return [];
+    return transaksi
+      .filter((t) => t.bidanIds.includes(user.id))
+      .filter((t) =>
+        filterMode === "tanggal"
+          ? t.tanggal === filterTanggal
+          : t.tanggal.startsWith(filterBulan),
+      )
+      .sort((a, b) =>
+        a.tanggal === b.tanggal
+          ? a.createdAt.localeCompare(b.createdAt)
+          : b.tanggal.localeCompare(a.tanggal),
+      );
+  }, [transaksi, user, filterMode, filterTanggal, filterBulan]);
+
+  const totalCatatan = riwayatFiltered.length;
+  const totalTindakan = riwayatFiltered.reduce((sum, t) => sum + t.jumlah, 0);
+
+  // Group by tanggal + pasien for spreadsheet-style display
+  const riwayatRows = useMemo(() => {
+    const rows: {
+      id: string;
+      showTanggal: boolean;
+      showPasien: boolean;
+      showPartner: boolean;
+      tanggal: string;
+      pasien: string;
+      jasa: string;
+      jumlah: number;
+      partner: string;
+      groupStart: boolean;
+    }[] = [];
+    let lastTanggal = "";
+    let lastPasienKey = "";
+    let lastPartner = "";
+    for (const t of riwayatFiltered) {
+      const partner =
+        t.bidanNamas.filter((n) => n !== user?.name).join(", ") || "-";
+      const showTanggal = t.tanggal !== lastTanggal;
+      const pasienKey = `${t.tanggal}::${t.pasien}`;
+      const showPasien = pasienKey !== lastPasienKey;
+      const partnerKey = `${t.tanggal}::${partner}`;
+      const showPartner = showTanggal || partnerKey !== lastPartner;
+      rows.push({
+        id: t.id,
+        showTanggal,
+        showPasien,
+        showPartner,
+        tanggal: t.tanggal,
+        pasien: t.pasien,
+        jasa: t.tarifNama,
+        jumlah: t.jumlah,
+        partner,
+        groupStart: showTanggal,
+      });
+      lastTanggal = t.tanggal;
+      lastPasienKey = pasienKey;
+      lastPartner = partnerKey;
+    }
+    return rows;
+  }, [riwayatFiltered, user]);
 
   const resetTindakanFields = () => {
     setTarifId("");
@@ -403,49 +462,111 @@ function InputPage() {
         </div>
       </div>
 
-      {/* Riwayat tanggal terpilih */}
+      {/* Riwayat tabel */}
       <div className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">
-              Riwayat {formatTanggal(tanggal)}
-            </h2>
+        <div className="mb-3 flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold">Riwayat Tindakan</h2>
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="inline-flex rounded-lg border bg-card p-0.5 text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setFilterMode("tanggal")}
+              className={cn(
+                "rounded-md px-3 py-1.5",
+                filterMode === "tanggal"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              Per Tanggal
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode("bulan")}
+              className={cn(
+                "rounded-md px-3 py-1.5",
+                filterMode === "bulan"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              Per Bulan
+            </button>
           </div>
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-            {riwayatHariIni.length} catatan
+          {filterMode === "tanggal" ? (
+            <Input
+              type="date"
+              value={filterTanggal}
+              onChange={(e) => setFilterTanggal(e.target.value)}
+              className="h-9 w-auto flex-1 text-xs"
+            />
+          ) : (
+            <Input
+              type="month"
+              value={filterBulan}
+              onChange={(e) => setFilterBulan(e.target.value)}
+              className="h-9 w-auto flex-1 text-xs"
+            />
+          )}
+        </div>
+
+        <div className="mb-3 flex gap-2 text-xs">
+          <span className="rounded-md bg-primary/10 px-2 py-1 font-semibold text-primary">
+            Total Catatan: {totalCatatan}
+          </span>
+          <span className="rounded-md bg-secondary/15 px-2 py-1 font-semibold text-secondary">
+            Total Tindakan: {totalTindakan}
           </span>
         </div>
 
-        {riwayatHariIni.length === 0 ? (
+        {riwayatRows.length === 0 ? (
           <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
-            Belum ada tindakan pada tanggal ini.
+            Belum ada tindakan pada periode ini.
           </div>
         ) : (
-          <ul className="space-y-2 pb-6">
-            {riwayatHariIni.map((t) => (
-              <li
-                key={t.id}
-                className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium">{t.tarifNama}</p>
-                    {t.bidanNamas.length > 1 && (
-                      <span className="flex items-center gap-1 rounded-md bg-secondary/15 px-1.5 py-0.5 text-[10px] font-semibold text-secondary">
-                        <Users className="h-3 w-3" /> Tim
-                      </span>
+          <div className="overflow-x-auto rounded-xl border bg-card">
+            <table className="w-full min-w-[560px] border-collapse text-xs">
+              <thead className="bg-muted/60 text-[11px] uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="border-b border-r px-2 py-2 text-left font-semibold">Tanggal</th>
+                  <th className="border-b border-r px-2 py-2 text-left font-semibold">Pasien</th>
+                  <th className="border-b border-r px-2 py-2 text-left font-semibold">Jasa Medis</th>
+                  <th className="border-b border-r px-2 py-2 text-right font-semibold">Jml</th>
+                  <th className="border-b px-2 py-2 text-left font-semibold">Partner</th>
+                </tr>
+              </thead>
+              <tbody>
+                {riwayatRows.map((row, idx) => (
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      idx % 2 === 0 ? "bg-card" : "bg-muted/30",
+                      row.groupStart && idx !== 0 && "border-t-2 border-primary/20",
                     )}
-                  </div>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {t.pasien} · {t.jumlah}x
-                    {t.bidanNamas.length > 1 &&
-                      ` · bersama ${t.bidanNamas.filter((n) => n !== user?.name).join(", ")}`}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  >
+                    <td className="border-r px-2 py-1.5 align-top text-[11px] font-medium whitespace-nowrap">
+                      {row.showTanggal ? formatTanggal(row.tanggal) : ""}
+                    </td>
+                    <td className="border-r px-2 py-1.5 align-top text-[11px]">
+                      {row.showPasien ? row.pasien : ""}
+                    </td>
+                    <td className="border-r px-2 py-1.5 align-top text-[11px]">
+                      {row.jasa}
+                    </td>
+                    <td className="border-r px-2 py-1.5 text-right align-top text-[11px] font-semibold">
+                      {row.jumlah}
+                    </td>
+                    <td className="px-2 py-1.5 align-top text-[11px] text-muted-foreground">
+                      {row.showPartner ? row.partner : ""}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
