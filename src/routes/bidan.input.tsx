@@ -527,11 +527,11 @@ function InputPage() {
             Belum ada tindakan pada periode ini.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-card">
+          <div className="relative overflow-x-auto rounded-xl border bg-card">
             <table className="w-full min-w-[560px] border-collapse text-xs">
               <thead className="bg-muted/60 text-[11px] uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="border-b border-r px-2 py-2 text-left font-semibold">Tanggal</th>
+                  <th className="sticky left-0 z-10 border-b border-r bg-inherit px-2 py-2 text-left font-semibold">Tanggal</th>
                   <th className="border-b border-r px-2 py-2 text-left font-semibold">Pasien</th>
                   <th className="border-b border-r px-2 py-2 text-left font-semibold">Jasa Medis</th>
                   <th className="border-b border-r px-2 py-2 text-right font-semibold">Jml</th>
@@ -547,7 +547,7 @@ function InputPage() {
                       row.groupStart && idx !== 0 && "border-t-2 border-primary/20",
                     )}
                   >
-                    <td className="border-r px-2 py-1.5 align-top text-[11px] font-medium whitespace-nowrap">
+                    <td className="sticky left-0 z-10 border-r bg-inherit px-2 py-1.5 align-top text-[11px] font-medium whitespace-nowrap">
                       {row.showTanggal ? formatTanggal(row.tanggal) : ""}
                     </td>
                     <td className="border-r px-2 py-1.5 align-top text-[11px]">
